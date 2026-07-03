@@ -15,8 +15,13 @@ describe('AppController', () => {
   });
 
   describe('root', () => {
-    it('should return "Hello World!"', () => {
-      expect(appController.getHello()).toBe('Hello World!');
+    it('should return a health object', () => {
+      const response = appController.health();
+      expect(response).toBeDefined();
+      expect(response.status).toBe('OK');
+      expect(response.timestamp).toBeDefined();
+      expect(response.service).toBe('Gestión de Suscripciones');
+      expect(response.version).toBe('1.0.0');
     });
   });
 });
