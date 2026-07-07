@@ -9,9 +9,11 @@ async function bootstrap() {
     exclude: ['health'],
   });
 
-  app.useGlobalPipes(new ValidationPipe({
-    whitelist: true,
-  }));
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+    }),
+  );
 
   await app.listen(process.env.PORT ?? 3000);
 }
