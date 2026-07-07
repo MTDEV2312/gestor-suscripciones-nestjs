@@ -6,6 +6,8 @@ import {
   Patch,
   Param,
   Delete,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import { SubscriptionsService } from './subscriptions.service';
 import { CreateSubscriptionDto } from './dto/create-subscription.dto';
@@ -16,6 +18,7 @@ export class SubscriptionsController {
   constructor(private readonly subscriptionsService: SubscriptionsService) {}
 
   @Post()
+  @UsePipes(new ValidationPipe())
   create(@Body() createSubscriptionDto: CreateSubscriptionDto) {
     return this.subscriptionsService.create(createSubscriptionDto);
   }
@@ -31,6 +34,7 @@ export class SubscriptionsController {
   }
 
   @Patch(':id')
+  @UsePipes(new ValidationPipe())
   update(
     @Param('id') id: string,
     @Body() updateSubscriptionDto: UpdateSubscriptionDto,

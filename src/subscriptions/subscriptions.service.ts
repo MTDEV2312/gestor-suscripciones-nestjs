@@ -5,7 +5,7 @@ import { UpdateSubscriptionDto } from './dto/update-subscription.dto';
 @Injectable()
 export class SubscriptionsService {
   create(createSubscriptionDto: CreateSubscriptionDto) {
-    return 'This action adds a new subscription';
+    console.log('createSubscriptionDto', createSubscriptionDto);
   }
 
   findAll() {
@@ -17,7 +17,7 @@ export class SubscriptionsService {
   }
 
   update(id: number, updateSubscriptionDto: UpdateSubscriptionDto) {
-    return `This action updates a #${id} subscription`;
+    console.log('updateSubscriptionDto', updateSubscriptionDto);
   }
 
   remove(id: number) {

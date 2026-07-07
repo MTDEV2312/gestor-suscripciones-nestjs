@@ -6,12 +6,13 @@ import {
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 
 @Entity()
 export class Subscription {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({
     type: 'varchar',
@@ -19,22 +20,24 @@ export class Subscription {
     nullable: false,
     comment: 'nombre de la suscripcion',
   })
-  name: string;
+  name!: string;
 
   @Column({
-    type: 'int',
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
     nullable: false,
     comment: 'precio de la suscripcion',
   })
-  price: number;
+  price!: number;
 
   @Column({
     type: 'varchar',
-    length: 10,
+    length: 3,
     nullable: false,
     comment: 'moneda de la suscripcion',
   })
-  currency: string;
+  currency!: string;
 
   @Column({
     type: 'simple-enum',
@@ -42,21 +45,22 @@ export class Subscription {
     nullable: false,
     comment: 'frecuencia de la suscripcion',
   })
-  frecuency: 'MONTHLY' | 'YEARLY';
+  frequency!: 'MONTHLY' | 'YEARLY';
 
-  @CreateDateColumn({
+  @Column({
     type: 'date',
     nullable: false,
     comment: 'fecha de renovacion de la suscripcion',
   })
-  renovation_date: Date;
+  next_renewal_date!: Date;
 
   @Column({
     type: 'boolean',
     nullable: false,
     comment: 'estado de la suscripcion',
+    default: true,
   })
-  is_active: boolean;
+  is_active!: boolean;
 
   @Column({
     type: 'varchar',
@@ -64,21 +68,21 @@ export class Subscription {
     nullable: false,
     comment: 'usuario al que pertenece la suscripcion',
   })
-  user_id: string;
+  user_id!: string;
 
   @CreateDateColumn({
     type: 'datetime',
     comment: 'fecha de creacion de la suscripcion',
   })
-  created_at: Date;
+  created_at!: Date;
 
-  @CreateDateColumn({
+  @UpdateDateColumn({
     type: 'datetime',
     comment: 'fecha de actualizacion de la suscripcion',
   })
-  updated_at: Date;
+  updated_at!: Date;
 
   @ManyToOne(() => User, (user) => user.subscriptions)
   @JoinColumn({ name: 'user_id' })
-  user: User;
+  user!: User;
 }
