@@ -10,7 +10,7 @@ import {
 @Entity()
 export class User {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({
     type: 'varchar',
@@ -19,7 +19,7 @@ export class User {
     nullable: false,
     comment: 'nombre del usuario',
   })
-  username: string;
+  username!: string;
 
   @Column({
     type: 'varchar',
@@ -27,27 +27,27 @@ export class User {
     nullable: false,
     comment: 'correo electronico del usuario',
   })
-  email: string;
+  email!: string;
 
   @Column({
     type: 'varchar',
     nullable: false,
     comment: 'contraseña del usuario',
   })
-  password: string;
+  password!: string;
 
   @CreateDateColumn({
     type: 'datetime',
     comment: 'fecha de registro del usuario',
   })
-  createdAt: Date;
+  createdAt!: Date;
 
   @CreateDateColumn({
     type: 'datetime',
     comment: 'fecha de actualizacion del usuario',
   })
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @OneToMany(() => Subscription, (subscription) => subscription.user)
-  subscriptions: Subscription[];
+  subscriptions!: Subscription[];
 }
