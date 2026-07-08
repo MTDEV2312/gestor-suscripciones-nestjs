@@ -1,3 +1,4 @@
+import { Exclude } from 'class-transformer';
 import { Subscription } from 'src/subscriptions/entities/subscription.entity';
 import {
   Column,
@@ -34,6 +35,7 @@ export class User {
     nullable: false,
     comment: 'contraseña del usuario',
   })
+  @Exclude()
   password!: string;
 
   @CreateDateColumn({
