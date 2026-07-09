@@ -33,14 +33,14 @@ export class SubscriptionsController {
 
   @Get()
   @HttpCode(200)
-  findAll() {
-    return this.subscriptionsService.findAll();
+  findAll(@Request() req: Request & { user: AuthUser },) {
+    return this.subscriptionsService.findAll(req);
   }
 
   @Get(':id')
   @HttpCode(200)
-  findOne(@Param('id') id: string) {
-    return this.subscriptionsService.findOne(id);
+  findOne(@Param('id') id: string,@Request() req: Request & { user: AuthUser },) {
+    return this.subscriptionsService.findOne(id, req);
   }
 
   @Patch(':id')
@@ -48,13 +48,14 @@ export class SubscriptionsController {
   update(
     @Param('id') id: string,
     @Body() updateSubscriptionDto: UpdateSubscriptionDto,
+    @Request() req: Request & { user: AuthUser },
   ) {
-    return this.subscriptionsService.update(id, updateSubscriptionDto);
+    return this.subscriptionsService.update(id, updateSubscriptionDto, req );
   }
 
   @Delete(':id')
   @HttpCode(200)
-  remove(@Param('id') id: string) {
-    return this.subscriptionsService.remove(id);
+  remove(@Param('id') id: string,@Request() req: Request & { user: AuthUser },) {
+    return this.subscriptionsService.remove(id, req);
   }
 }

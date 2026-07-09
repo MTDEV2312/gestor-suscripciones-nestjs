@@ -37,17 +37,17 @@ export class SubscriptionsService {
     };
   }
 
-  async findAll() {
-    return await this.subscriptionRepository.find();
+  async findAll(req: { user: AuthUser }) {
+    return await this.subscriptionRepository.find({ where: { user_id: req.user.id } });
   }
 
-  async findOne(id: string) {
-    return await this.subscriptionRepository.findOne({ where: { id } });
+  async findOne(id: string, req: { user: AuthUser }) {
+    return await this.subscriptionRepository.findOne({ where: { id, user_id: req.user.id } });
   }
 
-  async update(id: string, updateSubscriptionDto: UpdateSubscriptionDto) {
+  async update(id: string, updateSubscriptionDto: UpdateSubscriptionDto, req: { user: AuthUser }) {
     const subscription = await this.subscriptionRepository.findOne({
-      where: { id },
+      where: { id, user_id: req.user.id },
     });
     if (!subscription) {
       throw new NotFoundException('Suscripción no encontrada');
@@ -56,9 +56,9 @@ export class SubscriptionsService {
     return await this.subscriptionRepository.save(subscription);
   }
 
-  async remove(id: string) {
+  async remove(id: string, req: { user: AuthUser }) {
     const subscription = await this.subscriptionRepository.findOne({
-      where: { id },
+      where: { id, user_id: req.user.id },
     });
     if (!subscription) {
       throw new NotFoundException('Suscripción no encontrada');
