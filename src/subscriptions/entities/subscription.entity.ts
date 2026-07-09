@@ -50,6 +50,13 @@ export class Subscription {
   @Column({
     type: 'date',
     nullable: false,
+    comment: 'fecha de inicio de la suscripcion',
+  })
+  start_date!: Date;
+
+  @Column({
+    type: 'date',
+    nullable: false,
     comment: 'fecha de renovacion de la suscripcion',
   })
   next_renewal_date!: Date;

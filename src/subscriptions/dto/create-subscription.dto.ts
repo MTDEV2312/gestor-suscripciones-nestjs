@@ -41,6 +41,13 @@ export class CreateSubscriptionDto {
   @IsNotEmpty()
   @Type(() => Date)
   @IsDate({
+    message: 'The start date must be a valid date',
+  })
+  start_date!: Date;
+
+  @IsNotEmpty()
+  @Type(() => Date)
+  @IsDate({
     message: 'The next renewal date must be a valid date',
   })
   next_renewal_date!: Date;
