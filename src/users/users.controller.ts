@@ -2,26 +2,40 @@ import {
   Controller,
   Body,
   Patch,
-  Param,
   Delete,
   HttpCode,
+  UseGuards,
+  Request,
+  Get,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth/jwt-auth.guard';
+import { AuthUser } from 'src/auth/interfaces/auth-user/auth-user.interface';
 
+@UseGuards(JwtAuthGuard)
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Patch(':id')
+  @Get('me')
   @HttpCode(200)
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(+id, updateUserDto);
+  findById(@Request() req: Request & { user: AuthUser }) {
+    return this.usersService.findUserInfo(req);
   }
 
-  @Delete(':id')
+  @Patch()
   @HttpCode(200)
-  remove(@Param('id') id: string) {
-    return this.usersService.remove(+id);
+  update(
+    @Body() updateUserDto: UpdateUserDto,
+    @Request() req: Request & { user: AuthUser },
+  ) {
+    return this.usersService.update(updateUserDto, req);
+  }
+
+  @Delete()
+  @HttpCode(200)
+  remove(@Request() req: Request & { user: AuthUser }) {
+    return this.usersService.remove(req);
   }
 }
