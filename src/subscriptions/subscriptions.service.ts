@@ -1,26 +1,71 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateSubscriptionDto } from './dto/create-subscription.dto';
 import { UpdateSubscriptionDto } from './dto/update-subscription.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Subscription } from './entities/subscription.entity';
+import { Repository } from 'typeorm';
+import { UsersService } from 'src/users/users.service';
+import { AuthUser } from 'src/auth/interfaces/auth-user/auth-user.interface';
 
 @Injectable()
 export class SubscriptionsService {
-  create(createSubscriptionDto: CreateSubscriptionDto) {
-    console.log('createSubscriptionDto', createSubscriptionDto);
+  constructor(
+    @InjectRepository(Subscription)
+    private readonly subscriptionRepository: Repository<Subscription>,
+    private readonly userService: UsersService,
+  ) {}
+
+  async create(
+    createSubscriptionDto: CreateSubscriptionDto,
+    req: { user: AuthUser },
+  ) {
+    const userExists = await this.userService.findById(req.user.id);
+    if (!userExists) {
+      throw new NotFoundException('Usuario no encontrado');
+    }
+
+    const subscription = this.subscriptionRepository.create({
+      ...createSubscriptionDto,
+      user_id: req.user.id,
+    });
+
+    const savedSubscription =
+      await this.subscriptionRepository.save(subscription);
+    return {
+      message: 'Suscripción creada exitosamente',
+      subscription: savedSubscription,
+    };
   }
 
-  findAll() {
-    return `This action returns all subscriptions`;
+  async findAll() {
+    return await this.subscriptionRepository.find();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} subscription`;
+  async findOne(id: string) {
+    return await this.subscriptionRepository.findOne({ where: { id } });
   }
 
-  update(id: number, updateSubscriptionDto: UpdateSubscriptionDto) {
-    console.log('updateSubscriptionDto', updateSubscriptionDto);
+  async update(id: string, updateSubscriptionDto: UpdateSubscriptionDto) {
+    const subscription = await this.subscriptionRepository.findOne({
+      where: { id },
+    });
+    if (!subscription) {
+      throw new NotFoundException('Suscripción no encontrada');
+    }
+    Object.assign(subscription, updateSubscriptionDto);
+    return await this.subscriptionRepository.save(subscription);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} subscription`;
+  async remove(id: string) {
+    const subscription = await this.subscriptionRepository.findOne({
+      where: { id },
+    });
+    if (!subscription) {
+      throw new NotFoundException('Suscripción no encontrada');
+    }
+    await this.subscriptionRepository.remove(subscription);
+    return {
+      message: 'Suscripción eliminada exitosamente',
+    };
   }
 }
