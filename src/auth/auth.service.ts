@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { PasswordService } from 'src/security/password.service';
 import { UsersService } from 'src/users/users.service';
 import { RegisterDto } from './dto/register.dto';
@@ -59,20 +63,16 @@ export class AuthService {
     if (!validPassword) {
       throw new UnauthorizedException('Credenciales inválidas');
     }
-    const payload = { sub: user.id, username: user.username};
+    const payload = { sub: user.id, username: user.username };
 
     const accessToken = await this.jwtService.signAsync(payload);
 
     return {
-        token: accessToken,
-        user: {
-            id: user.id,
-            username: user.username,
-        }
-    }
-
-
-
-    
+      token: accessToken,
+      user: {
+        id: user.id,
+        username: user.username,
+      },
+    };
   }
 }

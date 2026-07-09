@@ -10,13 +10,15 @@ import { JwtStrategy } from './strategies/jwt.strategy/jwt.strategy';
 type ExpiresInType = JwtSignOptions['expiresIn'];
 
 @Module({
-  imports: [UsersModule, SecurityModule,
+  imports: [
+    UsersModule,
+    SecurityModule,
     JwtModule.registerAsync({
-      imports:[ConfigModule],
+      imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (config: ConfigService) =>({
+      useFactory: (config: ConfigService) => ({
         secret: config.get<string>('JWT_SECRET'),
-        signOptions: { expiresIn: config.get<ExpiresInType>('JWT_EXPIRES_IN')},
+        signOptions: { expiresIn: config.get<ExpiresInType>('JWT_EXPIRES_IN') },
       }),
     }),
   ],
