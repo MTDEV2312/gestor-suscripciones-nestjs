@@ -38,14 +38,22 @@ export class SubscriptionsService {
   }
 
   async findAll(req: { user: AuthUser }) {
-    return await this.subscriptionRepository.find({ where: { user_id: req.user.id } });
+    return await this.subscriptionRepository.find({
+      where: { user_id: req.user.id },
+    });
   }
 
   async findOne(id: string, req: { user: AuthUser }) {
-    return await this.subscriptionRepository.findOne({ where: { id, user_id: req.user.id } });
+    return await this.subscriptionRepository.findOne({
+      where: { id, user_id: req.user.id },
+    });
   }
 
-  async update(id: string, updateSubscriptionDto: UpdateSubscriptionDto, req: { user: AuthUser }) {
+  async update(
+    id: string,
+    updateSubscriptionDto: UpdateSubscriptionDto,
+    req: { user: AuthUser },
+  ) {
     const subscription = await this.subscriptionRepository.findOne({
       where: { id, user_id: req.user.id },
     });
