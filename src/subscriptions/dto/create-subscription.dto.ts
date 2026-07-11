@@ -1,6 +1,6 @@
-import { Transform, Type } from 'class-transformer';
+import { Transform } from 'class-transformer';
 import {
-  IsDate,
+  IsDateString,
   IsNotEmpty,
   IsNumber,
   IsString,
@@ -39,16 +39,14 @@ export class CreateSubscriptionDto {
   frequency!: 'MONTHLY' | 'YEARLY';
 
   @IsNotEmpty()
-  @Type(() => Date)
-  @IsDate({
+  @IsDateString({}, {
     message: 'The start date must be a valid date',
   })
-  start_date!: Date;
+  start_date!: string;
 
   @IsNotEmpty()
-  @Type(() => Date)
-  @IsDate({
+  @IsDateString({}, {
     message: 'The next renewal date must be a valid date',
   })
-  next_renewal_date!: Date;
+  next_renewal_date!: string;
 }

@@ -52,14 +52,14 @@ export class Subscription {
     nullable: false,
     comment: 'fecha de inicio de la suscripcion',
   })
-  start_date!: Date;
+  start_date!: string;
 
   @Column({
     type: 'date',
     nullable: false,
     comment: 'fecha de renovacion de la suscripcion',
   })
-  next_renewal_date!: Date;
+  next_renewal_date!: string;
 
   @Column({
     type: 'boolean',
