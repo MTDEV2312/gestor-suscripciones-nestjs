@@ -89,7 +89,7 @@ export class Subscription {
   })
   updated_at!: Date;
 
-  @ManyToOne(() => User, (user) => user.subscriptions,{
+  @ManyToOne(() => User, (user) => user.subscriptions, {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'user_id' })
