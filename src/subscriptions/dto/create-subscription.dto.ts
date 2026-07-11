@@ -39,14 +39,20 @@ export class CreateSubscriptionDto {
   frequency!: 'MONTHLY' | 'YEARLY';
 
   @IsNotEmpty()
-  @IsDateString({}, {
-    message: 'The start date must be a valid date',
-  })
+  @IsDateString(
+    {},
+    {
+      message: 'The start date must be a valid date',
+    },
+  )
   start_date!: string;
 
   @IsNotEmpty()
-  @IsDateString({}, {
-    message: 'The next renewal date must be a valid date',
-  })
+  @IsDateString(
+    {},
+    {
+      message: 'The next renewal date must be a valid date',
+    },
+  )
   next_renewal_date!: string;
 }

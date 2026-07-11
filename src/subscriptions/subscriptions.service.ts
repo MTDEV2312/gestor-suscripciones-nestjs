@@ -6,6 +6,7 @@ import { Subscription } from './entities/subscription.entity';
 import { Repository } from 'typeorm';
 import { UsersService } from 'src/users/users.service';
 import { AuthUser } from 'src/auth/interfaces/auth-user/auth-user.interface';
+import { addMonths, addYears, format } from 'date-fns';
 
 @Injectable()
 export class SubscriptionsService {
@@ -75,5 +76,49 @@ export class SubscriptionsService {
     return {
       message: 'Suscripción eliminada exitosamente',
     };
+  }
+
+  async findDueRenewals(): Promise<Subscription[]> {
+    const today = format(new Date(), 'yyyy-MM-dd');
+    return await this.subscriptionRepository
+      .createQueryBuilder('subscription')
+      .where('subscription.is_active = :isActive', { isActive: true })
+      .andWhere('subscription.next_renewal_date <= :today', { today })
+      .getMany();
+  }
+
+  async processDueRenewals(subscription: Subscription) {
+    if (!subscription.is_active) {
+      return;
+    }
+
+    console.log(
+      'Enviando notificacion de subscripcion a renovar para el usuario:',
+      subscription.user_id,
+    );
+
+    // Calcular la nueva fecha de renovación
+    subscription.next_renewal_date =
+      this.calculateNextRenewalDate(subscription);
+
+    await this.subscriptionRepository.save(subscription);
+  }
+
+  private calculateNextRenewalDate(subscription: Subscription): string {
+    const date = new Date(`${subscription.next_renewal_date}T00:00:00Z`);
+    let nextDate: Date;
+    switch (subscription.frequency) {
+      case 'MONTHLY':
+        nextDate = addMonths(date, 1);
+        break;
+
+      case 'YEARLY':
+        nextDate = addYears(date, 1);
+        break;
+
+      default:
+        throw new Error('Subscription frequency unknown');
+    }
+    return nextDate.toISOString().split('T')[0];
   }
 }
