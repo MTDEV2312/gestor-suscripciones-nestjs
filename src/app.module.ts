@@ -9,6 +9,8 @@ import { SecurityModule } from './security/security.module';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { CronJobModule } from './cron-job/cron-job.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -21,11 +23,13 @@ import { DashboardModule } from './dashboard/dashboard.module';
       autoLoadEntities: true,
       synchronize: true,
     }),
+    ScheduleModule.forRoot(),
     SubscriptionsModule,
     UsersModule,
     SecurityModule,
     AuthModule,
     DashboardModule,
+    CronJobModule,
   ],
   controllers: [AppController],
   providers: [AppService, PasswordService],
