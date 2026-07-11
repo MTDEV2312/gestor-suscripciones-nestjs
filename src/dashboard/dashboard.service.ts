@@ -4,6 +4,7 @@ import { Subscription } from 'src/subscriptions/entities/subscription.entity';
 import { UsersService } from 'src/users/users.service';
 import { Repository } from 'typeorm';
 import { AuthUser } from 'src/auth/interfaces/auth-user/auth-user.interface';
+import { addMonths, startOfMonth, format } from 'date-fns';
 
 @Injectable()
 export class DashboardService {
@@ -45,10 +46,13 @@ export class DashboardService {
 
   async getNextMonthRenewals(req: {
     user: AuthUser;
-  }): Promise<{ name: string; date: Date }[]> {
+  }): Promise<{ name: string; date: string }[]> {
     const now = new Date();
-    const startofMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const startOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    const startofMonth = format(startOfMonth(now), 'yyyy-MM-dd');
+    const startOfNextMonth = format(
+      addMonths(startOfMonth(now), 1),
+      'yyyy-MM-dd',
+    );
 
     const nextRenewals = await this.subscriptionRepository
       .createQueryBuilder('subscription')
@@ -72,7 +76,7 @@ export class DashboardService {
   async dashboard(req: { user: AuthUser }): Promise<{
     monthlySpending: number;
     yearlySpending: number;
-    nextRenewal: { name: string; date: Date }[];
+    nextRenewal: { name: string; date: string }[];
   }> {
     const userExists = await this.userService.findById(req.user.id);
     if (!userExists) {
