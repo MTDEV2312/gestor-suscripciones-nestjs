@@ -24,11 +24,13 @@ describe('SubscriptionsService', () => {
     user: {} as User,
   };
 
+  const mockLeftJoinAndSelect = jest.fn().mockReturnThis();
   const mockWhere = jest.fn().mockReturnThis();
   const mockAndWhere = jest.fn().mockReturnThis();
   const mockGetMany = jest.fn();
 
   const mockQueryBuilder = {
+    leftJoinAndSelect: mockLeftJoinAndSelect,
     where: mockWhere,
     andWhere: mockAndWhere,
     getMany: mockGetMany,
@@ -243,6 +245,10 @@ describe('SubscriptionsService', () => {
       const result = await service.findDueRenewals();
 
       expect(mockCreateQueryBuilder).toHaveBeenCalledWith('subscription');
+      expect(mockLeftJoinAndSelect).toHaveBeenCalledWith(
+        'subscription.user',
+        'user',
+      );
       expect(mockWhere).toHaveBeenCalledWith(
         'subscription.is_active = :isActive',
         {

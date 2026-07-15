@@ -82,6 +82,7 @@ export class SubscriptionsService {
     const today = format(new Date(), 'yyyy-MM-dd');
     return await this.subscriptionRepository
       .createQueryBuilder('subscription')
+      .leftJoinAndSelect('subscription.user', 'user')
       .where('subscription.is_active = :isActive', { isActive: true })
       .andWhere('subscription.next_renewal_date <= :today', { today })
       .getMany();
@@ -91,11 +92,6 @@ export class SubscriptionsService {
     if (!subscription.is_active) {
       return;
     }
-
-    console.log(
-      'Enviando notificacion de subscripcion a renovar para el usuario:',
-      subscription.user_id,
-    );
 
     // Calcular la nueva fecha de renovación
     subscription.next_renewal_date =
