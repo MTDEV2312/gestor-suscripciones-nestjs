@@ -50,6 +50,14 @@ export class User {
   })
   updatedAt!: Date;
 
+  @Column({
+    type: 'varchar',
+    length: 100,
+    nullable: true,
+    comment: 'nombre de usuario de Telegram para CallMeBot',
+  })
+  telegramUsername?: string;
+
   @OneToMany(() => Subscription, (subscription) => subscription.user)
   subscriptions!: Subscription[];
 }

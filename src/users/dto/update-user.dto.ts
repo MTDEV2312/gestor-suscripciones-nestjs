@@ -32,4 +32,11 @@ export class UpdateUserDto {
   @MaxLength(50)
   @Transform(trimTransform)
   email?: string;
+
+  @IsOptional()
+  @Transform(toLowerCaseTransform)
+  @IsString()
+  @IsNotEmpty()
+  @Transform(trimTransform)
+  telegramUsername?: string;
 }
