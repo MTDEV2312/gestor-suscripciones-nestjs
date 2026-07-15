@@ -11,6 +11,8 @@ import { ConfigModule } from '@nestjs/config';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { CronJobModule } from './cron-job/cron-job.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { NotificationsService } from './notifications/notifications.service';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -30,8 +32,9 @@ import { ScheduleModule } from '@nestjs/schedule';
     AuthModule,
     DashboardModule,
     CronJobModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
-  providers: [AppService, PasswordService],
+  providers: [AppService, PasswordService, NotificationsService],
 })
 export class AppModule {}
