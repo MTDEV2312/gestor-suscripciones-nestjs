@@ -2,6 +2,7 @@ import { Transform } from 'class-transformer';
 import {
   IsEmail,
   IsNotEmpty,
+  IsOptional,
   IsString,
   Length,
   Matches,
@@ -21,6 +22,11 @@ export class RegisterDto {
     message: 'El username solo puede contener letras, números y guiones bajos',
   })
   username!: string;
+
+  @Transform(trimTransform)
+  @IsString()
+  @IsOptional()
+  telegramUsername?: string;
 
   @Transform(toLowerCaseTransform)
   @IsString()

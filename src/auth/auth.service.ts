@@ -45,6 +45,7 @@ export class AuthService {
       username: dto.username,
       email: dto.email,
       password: hashedPassword,
+      telegramUsername: dto.telegramUsername,
     });
   }
 
