@@ -10,7 +10,7 @@ export class RenewalScheduler {
     private readonly notificationsService: NotificationsService,
   ) {}
 
-  @Cron('*/30 * * * * *')
+  @Cron('0 8 * * *')
   async checkRenewals() {
     const dueRenewals = await this.subscriptionService.findDueRenewals();
     if (dueRenewals.length === 0) {
