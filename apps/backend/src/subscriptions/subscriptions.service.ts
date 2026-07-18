@@ -84,7 +84,9 @@ export class SubscriptionsService {
       .createQueryBuilder('subscription')
       .leftJoinAndSelect('subscription.user', 'user')
       .where('subscription.is_active = :isActive', { isActive: true })
-      .andWhere('subscription.next_renewal_date <= :today', { today })
+      .andWhere('SUBSTR(subscription.next_renewal_date, 1, 10) <= :today', {
+        today,
+      })
       .getMany();
   }
 
@@ -101,7 +103,10 @@ export class SubscriptionsService {
   }
 
   private calculateNextRenewalDate(subscription: Subscription): string {
-    const date = new Date(`${subscription.next_renewal_date}T00:00:00Z`);
+    const cleanDate = subscription.next_renewal_date.includes('T')
+      ? subscription.next_renewal_date.split('T')[0]
+      : subscription.next_renewal_date;
+    const date = new Date(`${cleanDate}T00:00:00Z`);
     let nextDate: Date;
     switch (subscription.frequency) {
       case 'MONTHLY':

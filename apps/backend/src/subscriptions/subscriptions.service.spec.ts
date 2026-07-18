@@ -256,7 +256,7 @@ describe('SubscriptionsService', () => {
         },
       );
       expect(mockAndWhere).toHaveBeenCalledWith(
-        'subscription.next_renewal_date <= :today',
+        'SUBSTR(subscription.next_renewal_date, 1, 10) <= :today',
         expect.any(Object),
       );
       expect(result).toEqual(mockList);

@@ -25,7 +25,12 @@ export class UsersService {
 
   //User services routes
 
-  async create(data: { username: string; email: string; password: string; telegramUsername?: string }) {
+  async create(data: {
+    username: string;
+    email: string;
+    password: string;
+    telegramUsername?: string;
+  }) {
     const user = this.userRepository.create(data);
     return this.userRepository.save(user);
   }

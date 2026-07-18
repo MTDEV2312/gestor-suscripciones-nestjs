@@ -10,6 +10,7 @@ export class NotificationsService {
 
   constructor() {
     this.telegramApiUrl = process.env.TELEGRAM_API_URL || '';
+    this.telegramUsername = process.env.TELEGRAM_USERNAME || '';
     this.isHtml = process.env.ISHTML || 'yes';
     this.isLinks = process.env.ISLINKS || 'no';
   }
@@ -23,7 +24,10 @@ export class NotificationsService {
         this.logger.warn('No telegram username provided for notification');
         return;
       }
-      const url = `${this.telegramApiUrl}user=${recipient}&text=${encodeURIComponent(message)}&html=${this.isHtml}&links=${this.isLinks}`;
+      const formattedRecipient = recipient.startsWith('@')
+        ? recipient
+        : `@${recipient}`;
+      const url = `${this.telegramApiUrl}user=${formattedRecipient}&text=${encodeURIComponent(message)}&html=${this.isHtml}&links=${this.isLinks}`;
       const response = await fetch(url);
       if (!response.ok) {
         this.logger.error(

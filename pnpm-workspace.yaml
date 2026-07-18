@@ -1,5 +1,9 @@
+packages:
+  - 'apps/*'
+
 allowBuilds:
   bcrypt: true
   better-sqlite3: true
-  sqlite3: set this to true or false
+  sqlite3: true
   unrs-resolver: true
+  esbuild: true

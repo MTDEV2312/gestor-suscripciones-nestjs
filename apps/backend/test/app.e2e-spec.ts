@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call */
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import request from 'supertest';
@@ -137,7 +138,9 @@ describe('System E2E Lifecycle', () => {
           expect(response.body).toBeDefined();
           expect(Array.isArray(response.body)).toBe(true);
           expect(response.body.length).toBeGreaterThanOrEqual(1);
-          const sub = response.body.find((s: any) => s.id === createdSubscriptionId);
+          const sub = response.body.find(
+            (s: any) => s.id === createdSubscriptionId,
+          );
           expect(sub).toBeDefined();
           expect(sub.name).toBe('Netflix E2E');
         });
@@ -188,7 +191,9 @@ describe('System E2E Lifecycle', () => {
         .expect(200)
         .then((response) => {
           expect(response.body).toBeDefined();
-          expect(response.body.message).toBe('Suscripción eliminada exitosamente');
+          expect(response.body.message).toBe(
+            'Suscripción eliminada exitosamente',
+          );
         });
     });
   });

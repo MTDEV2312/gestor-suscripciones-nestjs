@@ -1,10 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { NotificationsService } from 'src/notifications/notifications.service';
 import { SubscriptionsService } from 'src/subscriptions/subscriptions.service';
 
 @Injectable()
 export class RenewalScheduler {
+  private readonly logger = new Logger(RenewalScheduler.name);
+
   constructor(
     private readonly subscriptionService: SubscriptionsService,
     private readonly notificationsService: NotificationsService,
@@ -12,7 +14,11 @@ export class RenewalScheduler {
 
   @Cron('0 8 * * *')
   async checkRenewals() {
+    this.logger.log('Starting checkRenewals cron job...');
     const dueRenewals = await this.subscriptionService.findDueRenewals();
+    this.logger.log(
+      `Found ${dueRenewals.length} subscriptions due for renewal.`,
+    );
     if (dueRenewals.length === 0) {
       return;
     }
