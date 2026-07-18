@@ -37,6 +37,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigateToProf
   const [formFrequency, setFormFrequency] = useState<'MONTHLY' | 'YEARLY'>('MONTHLY');
   const [formStartDate, setFormStartDate] = useState('');
   const [formNextRenewalDate, setFormNextRenewalDate] = useState('');
+  const [formIsActive, setFormIsActive] = useState(true);
   const [formLoading, setFormLoading] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -71,6 +72,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigateToProf
     const today = new Date().toISOString().split('T')[0];
     setFormStartDate(today);
     setFormNextRenewalDate(today);
+    setFormIsActive(true);
     setFormError(null);
     setShowModal(true);
   };
@@ -83,6 +85,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigateToProf
     setFormFrequency(sub.frequency);
     setFormStartDate(sub.start_date.split('T')[0]);
     setFormNextRenewalDate(sub.next_renewal_date.split('T')[0]);
+    setFormIsActive(sub.is_active);
     setFormError(null);
     setShowModal(true);
   };
@@ -106,6 +109,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigateToProf
       frequency: formFrequency,
       start_date: formStartDate,
       next_renewal_date: formNextRenewalDate,
+      is_active: formIsActive,
     };
 
     try {
@@ -449,6 +453,19 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigateToProf
                     className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition"
                   />
                 </div>
+              </div>
+
+              <div className="flex items-center gap-3 py-1">
+                <input
+                  id="formIsActive"
+                  type="checkbox"
+                  checked={formIsActive}
+                  onChange={(e) => setFormIsActive(e.target.checked)}
+                  className="w-4 h-4 rounded border-gray-700 bg-gray-800 text-blue-600 focus:ring-blue-500 focus:ring-offset-0 cursor-pointer"
+                />
+                <label htmlFor="formIsActive" className="text-sm font-medium text-gray-300 cursor-pointer select-none">
+                  Suscripción Activa
+                </label>
               </div>
 
               <div className="pt-4 border-t border-gray-800 flex justify-end gap-3 bg-gray-900">
