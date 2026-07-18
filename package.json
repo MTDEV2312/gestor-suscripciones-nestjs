@@ -10,6 +10,7 @@
     "build": "pnpm --filter backend build && pnpm --filter frontend build",
     "start:backend": "pnpm --filter backend start:prod",
     "preview:frontend": "pnpm --filter frontend preview",
+    "start": "pnpm --filter backend --filter frontend --parallel start:prod",
     "test:backend": "pnpm --filter backend test",
     "test:backend:e2e": "pnpm --filter backend test:e2e"
   }
