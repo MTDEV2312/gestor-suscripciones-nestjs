@@ -16,6 +16,7 @@ export interface Subscription {
   start_date: string;
   next_renewal_date: string;
   is_active: boolean;
+  type?: 'SUBSCRIPTION' | 'DOMAIN' | 'HOSTING';
 }
 
 export interface DashboardInfo {

@@ -35,6 +35,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigateToProf
   const [formPrice, setFormPrice] = useState('');
   const [formCurrency, setFormCurrency] = useState('usd');
   const [formFrequency, setFormFrequency] = useState<'MONTHLY' | 'YEARLY'>('MONTHLY');
+  const [formType, setFormType] = useState<'SUBSCRIPTION' | 'DOMAIN' | 'HOSTING'>('SUBSCRIPTION');
   const [formStartDate, setFormStartDate] = useState('');
   const [formNextRenewalDate, setFormNextRenewalDate] = useState('');
   const [formIsActive, setFormIsActive] = useState(true);
@@ -68,6 +69,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigateToProf
     setFormPrice('');
     setFormCurrency('usd');
     setFormFrequency('MONTHLY');
+    setFormType('SUBSCRIPTION');
     // Set default dates to today
     const today = new Date().toISOString().split('T')[0];
     setFormStartDate(today);
@@ -83,6 +85,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigateToProf
     setFormPrice(sub.price.toString());
     setFormCurrency(sub.currency);
     setFormFrequency(sub.frequency);
+    setFormType(sub.type || 'SUBSCRIPTION');
     setFormStartDate(sub.start_date.split('T')[0]);
     setFormNextRenewalDate(sub.next_renewal_date.split('T')[0]);
     setFormIsActive(sub.is_active);
@@ -107,6 +110,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigateToProf
       price: priceNum,
       currency: formCurrency.toLowerCase(),
       frequency: formFrequency,
+      type: formType,
       start_date: formStartDate,
       next_renewal_date: formNextRenewalDate,
       is_active: formIsActive,
@@ -284,6 +288,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigateToProf
                 <thead className="bg-gray-950 text-gray-400 uppercase text-xs border-b border-gray-850">
                   <tr>
                     <th className="px-6 py-4">Nombre</th>
+                    <th className="px-6 py-4">Tipo</th>
                     <th className="px-6 py-4">Precio</th>
                     <th className="px-6 py-4">Frecuencia</th>
                     <th className="px-6 py-4">Próxima Renovación</th>
@@ -295,6 +300,17 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigateToProf
                   {subscriptions.map((sub) => (
                     <tr key={sub.id} className="hover:bg-gray-800/50 transition">
                       <td className="px-6 py-4 font-semibold text-white">{sub.name}</td>
+                      <td className="px-6 py-4">
+                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                          sub.type === 'DOMAIN'
+                            ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                            : sub.type === 'HOSTING'
+                            ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20'
+                            : 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+                        }`}>
+                          {sub.type === 'DOMAIN' ? 'Dominio' : sub.type === 'HOSTING' ? 'Hosting' : 'Suscripción'}
+                        </span>
+                      </td>
                       <td className="px-6 py-4">
                         {sub.price.toFixed(2)} <span className="uppercase text-xs text-gray-500">{sub.currency}</span>
                       </td>
@@ -384,6 +400,20 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout, onNavigateToProf
                   className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition"
                   placeholder="ej. Netflix, Spotify"
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1">Tipo de Servicio</label>
+                <select
+                  required
+                  value={formType}
+                  onChange={(e) => setFormType(e.target.value as 'SUBSCRIPTION' | 'DOMAIN' | 'HOSTING')}
+                  className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition"
+                >
+                  <option value="SUBSCRIPTION">Suscripción</option>
+                  <option value="DOMAIN">Dominio</option>
+                  <option value="HOSTING">Hosting</option>
+                </select>
               </div>
 
               <div className="grid grid-cols-2 gap-4">

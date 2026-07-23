@@ -70,6 +70,15 @@ export class Subscription {
   is_active!: boolean;
 
   @Column({
+    type: 'simple-enum',
+    enum: ['SUBSCRIPTION', 'DOMAIN', 'HOSTING'],
+    nullable: false,
+    default: 'SUBSCRIPTION',
+    comment: 'tipo de la suscripcion',
+  })
+  type!: 'SUBSCRIPTION' | 'DOMAIN' | 'HOSTING';
+
+  @Column({
     type: 'varchar',
     length: 50,
     nullable: false,

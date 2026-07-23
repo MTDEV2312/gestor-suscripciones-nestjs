@@ -15,6 +15,7 @@ describe('SubscriptionsService', () => {
     price: 15.99,
     currency: 'USD',
     frequency: 'MONTHLY',
+    type: 'SUBSCRIPTION',
     start_date: '2026-07-10',
     next_renewal_date: '2026-08-10',
     is_active: true,
@@ -121,6 +122,33 @@ describe('SubscriptionsService', () => {
       expect(result).toEqual({
         message: 'Suscripción creada exitosamente',
         subscription: mockSubscription,
+      });
+    });
+
+    it('should create and save subscription with a specific type (e.g. DOMAIN) successfully', async () => {
+      const domainCreateDto = {
+        ...createDto,
+        type: 'DOMAIN' as const,
+      };
+      const expectedMockSub = {
+        ...mockSubscription,
+        type: 'DOMAIN' as const,
+      };
+
+      mockFindById.mockResolvedValue({ id: 'user-uuid' });
+      mockCreate.mockReturnValue(expectedMockSub);
+      mockSave.mockResolvedValue(expectedMockSub);
+
+      const result = await service.create(domainCreateDto, req);
+
+      expect(mockCreate).toHaveBeenCalledWith({
+        ...domainCreateDto,
+        user_id: 'user-uuid',
+      });
+      expect(mockSave).toHaveBeenCalledWith(expectedMockSub);
+      expect(result).toEqual({
+        message: 'Suscripción creada exitosamente',
+        subscription: expectedMockSub,
       });
     });
   });

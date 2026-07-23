@@ -3,6 +3,7 @@ import {
   IsDateString,
   IsNotEmpty,
   IsNumber,
+  IsOptional,
   IsString,
   Length,
   Matches,
@@ -37,6 +38,13 @@ export class CreateSubscriptionDto {
     message: 'The frequency must be MONTHLY or YEARLY.',
   })
   frequency!: 'MONTHLY' | 'YEARLY';
+
+  @IsOptional()
+  @IsString()
+  @Matches(/^(SUBSCRIPTION|DOMAIN|HOSTING)$/, {
+    message: 'The type must be SUBSCRIPTION, DOMAIN, or HOSTING.',
+  })
+  type?: 'SUBSCRIPTION' | 'DOMAIN' | 'HOSTING';
 
   @IsNotEmpty()
   @IsDateString(
