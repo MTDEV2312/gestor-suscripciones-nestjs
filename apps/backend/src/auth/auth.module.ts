@@ -16,10 +16,13 @@ type ExpiresInType = JwtSignOptions['expiresIn'];
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        secret: config.get<string>('JWT_SECRET'),
-        signOptions: { expiresIn: config.get<ExpiresInType>('JWT_EXPIRES_IN') },
-      }),
+      useFactory: (config: ConfigService) => {
+        const expiresIn = config.get<ExpiresInType>('JWT_EXPIRES_IN');
+        return {
+          secret: config.get<string>('JWT_SECRET'),
+          signOptions: expiresIn ? { expiresIn } : undefined,
+        };
+      },
     }),
   ],
   providers: [AuthService, JwtStrategy],

@@ -13,6 +13,7 @@ import { CronJobModule } from './cron-job/cron-job.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { NotificationsService } from './notifications/notifications.service';
 import { NotificationsModule } from './notifications/notifications.module';
+import { dataSourceOptions } from './database/data-source';
 
 @Module({
   imports: [
@@ -20,10 +21,9 @@ import { NotificationsModule } from './notifications/notifications.module';
       isGlobal: true,
     }),
     TypeOrmModule.forRoot({
-      type: 'better-sqlite3',
-      database: 'database.sqlite',
+      ...dataSourceOptions,
       autoLoadEntities: true,
-      synchronize: true,
+      migrationsRun: process.env.DB_MIGRATIONS_RUN === 'true',
     }),
     ScheduleModule.forRoot(),
     SubscriptionsModule,
