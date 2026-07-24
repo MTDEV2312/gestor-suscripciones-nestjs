@@ -7,6 +7,33 @@ export interface User {
   telegramUsername?: string;
 }
 
+export interface Tag {
+  id: string;
+  name: string;
+  color?: string;
+  user_id?: string;
+}
+
+export interface SubscriptionHistory {
+  id: string;
+  subscription_id: string;
+  old_price?: number;
+  new_price: number;
+  old_frequency?: 'MONTHLY' | 'YEARLY';
+  new_frequency: 'MONTHLY' | 'YEARLY';
+  currency: string;
+  effective_date: string;
+  created_at: string;
+}
+
+export interface ExchangeRate {
+  id: string;
+  from_currency: string;
+  to_currency: string;
+  rate: number;
+  updated_at?: string;
+}
+
 export interface Subscription {
   id: string;
   name: string;
@@ -17,12 +44,15 @@ export interface Subscription {
   next_renewal_date: string;
   is_active: boolean;
   type?: 'SUBSCRIPTION' | 'DOMAIN' | 'HOSTING';
+  tags?: Tag[];
+  tagIds?: string[];
 }
 
 export interface DashboardInfo {
   monthlySpending: number;
   yearlySpending: number;
   nextRenewal: { name: string; date: string }[];
+  preferredCurrency?: string;
 }
 
 export const getToken = (): string | null => localStorage.getItem('token');
@@ -76,13 +106,14 @@ export const api = {
     }),
   },
   subscriptions: {
-    list: () => request<Subscription[]>('/subscriptions'),
+    list: (tagId?: string) => request<Subscription[]>(`/subscriptions${tagId ? `?tagId=${tagId}` : ''}`),
     get: (id: string) => request<Subscription>(`/subscriptions/${id}`),
-    create: (body: Omit<Subscription, 'id' | 'is_active'>) => request<Subscription>('/subscriptions', {
+    getHistory: (id: string) => request<SubscriptionHistory[]>(`/subscriptions/${id}/history`),
+    create: (body: Omit<Subscription, 'id' | 'is_active'> & { tagIds?: string[] }) => request<Subscription>('/subscriptions', {
       method: 'POST',
       body: JSON.stringify(body),
     }),
-    update: (id: string, body: Partial<Subscription>) => request<Subscription>(`/subscriptions/${id}`, {
+    update: (id: string, body: Partial<Subscription> & { tagIds?: string[] }) => request<Subscription>(`/subscriptions/${id}`, {
       method: 'PATCH',
       body: JSON.stringify(body),
     }),
@@ -90,8 +121,26 @@ export const api = {
       method: 'DELETE',
     }),
   },
+  tags: {
+    list: () => request<Tag[]>('/tags'),
+    create: (body: { name: string; color?: string }) => request<Tag>('/tags', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+    delete: (id: string) => request<void>(`/tags/${id}`, {
+      method: 'DELETE',
+    }),
+  },
+  currency: {
+    getAdminRates: () => request<ExchangeRate[]>('/admin/exchange-rates'),
+    updateAdminRate: (body: { base_currency: string; target_currency: string; rate: number }) => request<ExchangeRate>('/admin/exchange-rates', {
+      method: 'PUT',
+      body: JSON.stringify(body),
+    }),
+    convert: (amount: number, from: string, to: string) => request<{ amount: number; from: string; to: string; converted: number }>(`/currency/convert?amount=${amount}&from=${from}&to=${to}`),
+  },
   dashboard: {
-    getInfo: () => request<DashboardInfo>('/dashboard'),
+    getInfo: (currency?: string) => request<DashboardInfo>(`/dashboard${currency ? `?currency=${currency}` : ''}`),
   },
   user: {
     me: () => request<User>('/users/me'),

@@ -1,0 +1,41 @@
+{
+  "changeName": "fase-7-advanced-features",
+  "workUnit": "Unit 3 (PR 3: Custom Tags & 50 Limit Validation)",
+  "applyState": "unit_complete",
+  "completedTasks": [
+    "3.1",
+    "3.2",
+    "3.3",
+    "3.4",
+    "3.5",
+    "3.6"
+  ],
+  "remainingTasks": [
+    "4.1",
+    "4.2",
+    "5.1",
+    "5.2",
+    "6.1",
+    "6.2"
+  ],
+  "updatedFiles": [
+    "apps/backend/src/tags/entities/tag.entity.ts",
+    "apps/backend/src/tags/dto/create-tag.dto.ts",
+    "apps/backend/src/tags/dto/update-tag.dto.ts",
+    "apps/backend/src/tags/tags.service.ts",
+    "apps/backend/src/tags/tags.controller.ts",
+    "apps/backend/src/tags/tags.module.ts",
+    "apps/backend/src/tags/tags.service.spec.ts",
+    "apps/backend/src/tags/tags.controller.spec.ts",
+    "apps/backend/src/subscriptions/entities/subscription.entity.ts",
+    "apps/backend/src/subscriptions/subscriptions.service.ts",
+    "apps/backend/src/subscriptions/subscriptions.controller.ts",
+    "apps/backend/src/subscriptions/subscriptions.module.ts",
+    "apps/backend/src/subscriptions/subscriptions.service.spec.ts",
+    "apps/backend/src/subscriptions/subscriptions.controller.spec.ts",
+    "apps/backend/src/users/entities/user.entity.ts",
+    "apps/backend/src/database/migrations/1784838482194-AddTagsAndSubscriptionTags.ts",
+    "apps/backend/src/app.module.ts",
+    "openspec/changes/fase-7-advanced-features/tasks.md"
+  ]
+}
