@@ -5,6 +5,7 @@ import { UsersService } from 'src/users/users.service';
 import { Repository } from 'typeorm';
 import { AuthUser } from 'src/auth/interfaces/auth-user/auth-user.interface';
 import { addMonths, startOfMonth, format } from 'date-fns';
+import { CurrencyService } from 'src/currency/currency.service';
 
 @Injectable()
 export class DashboardService {
@@ -12,36 +13,37 @@ export class DashboardService {
     @InjectRepository(Subscription)
     private readonly subscriptionRepository: Repository<Subscription>,
     private readonly userService: UsersService,
+    private readonly currencyService: CurrencyService,
   ) {}
 
-  async getRevenueSummarySpending(req: {
-    user: AuthUser;
-  }): Promise<{ monthlySpending: number; yearlySpending: number }> {
-    type RevenueSummary = {
-      frequency: 'MONTHLY' | 'YEARLY';
-      total: number;
+  async getRevenueSummarySpending(
+    req: { user: AuthUser },
+    targetCurrency: string = 'USD',
+  ): Promise<{ monthlySpending: number; yearlySpending: number }> {
+    const subscriptions = await this.subscriptionRepository.find({
+      where: { user_id: req.user.id, is_active: true },
+    });
+
+    let monthlySpending = 0;
+    let yearlySpending = 0;
+
+    for (const sub of subscriptions) {
+      const convertedPrice = await this.currencyService.convert(
+        Number(sub.price),
+        sub.currency || 'USD',
+        targetCurrency,
+      );
+      if (sub.frequency === 'MONTHLY') {
+        monthlySpending += convertedPrice;
+      } else if (sub.frequency === 'YEARLY') {
+        yearlySpending += convertedPrice;
+      }
+    }
+
+    return {
+      monthlySpending: Number(monthlySpending.toFixed(2)),
+      yearlySpending: Number(yearlySpending.toFixed(2)),
     };
-    const result = await this.subscriptionRepository
-      .createQueryBuilder('subscription')
-      .select('subscription.frequency', 'frequency')
-      .addSelect('SUM(subscription.price)', 'total')
-      .where('subscription.user_Id = :user_Id', { user_Id: req.user.id })
-      .andWhere('subscription.is_active = :is_active', { is_active: true })
-      .groupBy('subscription.frequency')
-      .getRawMany<RevenueSummary>();
-
-    const monthlySpending = Number(
-      Number(result.find((r) => r.frequency === 'MONTHLY')?.total ?? 0).toFixed(
-        2,
-      ),
-    );
-    const yearlySpending = Number(
-      Number(result.find((r) => r.frequency === 'YEARLY')?.total ?? 0).toFixed(
-        2,
-      ),
-    );
-
-    return { monthlySpending, yearlySpending };
   }
 
   async getNextMonthRenewals(req: {
@@ -73,7 +75,10 @@ export class DashboardService {
     }));
   }
 
-  async dashboard(req: { user: AuthUser }): Promise<{
+  async dashboard(
+    req: { user: AuthUser },
+    targetCurrency: string = 'USD',
+  ): Promise<{
     monthlySpending: number;
     yearlySpending: number;
     nextRenewal: { name: string; date: string }[];
@@ -83,12 +88,12 @@ export class DashboardService {
       throw new NotFoundException('Usuario no encontrado');
     }
     const { monthlySpending, yearlySpending } =
-      await this.getRevenueSummarySpending(req);
+      await this.getRevenueSummarySpending(req, targetCurrency);
     const nextRenewals = await this.getNextMonthRenewals(req);
 
     return {
-      monthlySpending: monthlySpending,
-      yearlySpending: yearlySpending,
+      monthlySpending,
+      yearlySpending,
       nextRenewal: nextRenewals,
     };
   }
