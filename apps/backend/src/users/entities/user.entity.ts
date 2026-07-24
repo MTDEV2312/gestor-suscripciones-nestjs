@@ -1,5 +1,6 @@
 import { Exclude } from 'class-transformer';
 import { Subscription } from 'src/subscriptions/entities/subscription.entity';
+import { Tag } from 'src/tags/entities/tag.entity';
 import {
   Column,
   CreateDateColumn,
@@ -60,4 +61,7 @@ export class User {
 
   @OneToMany(() => Subscription, (subscription) => subscription.user)
   subscriptions!: Subscription[];
+
+  @OneToMany(() => Tag, (tag) => tag.user)
+  tags!: Tag[];
 }
