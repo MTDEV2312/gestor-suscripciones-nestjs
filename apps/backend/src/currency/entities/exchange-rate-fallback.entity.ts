@@ -40,4 +40,11 @@ export class ExchangeRateFallback {
     comment: 'Fecha de última actualización',
   })
   updated_at!: Date;
+
+  @Column({
+    type: 'datetime',
+    nullable: true,
+    comment: 'Fecha de última actualización desde API externa',
+  })
+  last_fetched_at?: Date;
 }

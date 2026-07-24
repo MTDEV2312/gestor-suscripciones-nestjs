@@ -20,7 +20,7 @@ describe('CurrencyService', () => {
 
   beforeEach(async () => {
     const mockRepo = {
-      find: jest.fn(),
+      find: jest.fn().mockResolvedValue([]),
       findOne: jest.fn(),
       create: jest.fn(),
       save: jest.fn(),
@@ -58,7 +58,7 @@ describe('CurrencyService', () => {
     expect(service).toBeDefined();
   });
 
-  describe('convert with external API success', () => {
+  describe('convert with external API success & 5-day caching', () => {
     it('should convert currency using external API rates when available', async () => {
       configService.get.mockReturnValue('test-api-key');
       const mockApiResponse = {
@@ -83,7 +83,7 @@ describe('CurrencyService', () => {
       );
     });
 
-    it('should cache rates within TTL and avoid duplicate fetch calls', async () => {
+    it('should cache rates within 5-day TTL and avoid duplicate fetch calls', async () => {
       configService.get.mockReturnValue('test-api-key');
       const mockApiResponse = {
         result: 'success',
@@ -103,6 +103,25 @@ describe('CurrencyService', () => {
       await service.convert(200, 'USD', 'EUR');
 
       expect(global.fetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('should use valid DB cached rates (< 5 days old) across server restarts without calling API', async () => {
+      fallbackRepository.find.mockResolvedValue([
+        {
+          id: 'fb-1',
+          base_currency: 'USD',
+          target_currency: 'EUR',
+          rate: 0.92,
+          updated_at: new Date(),
+          last_fetched_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago (< 5 days)
+        } as ExchangeRateFallback,
+      ]);
+
+      global.fetch = jest.fn();
+
+      const result = await service.convert(100, 'USD', 'EUR');
+      expect(result).toBe(92);
+      expect(global.fetch).not.toHaveBeenCalled();
     });
   });
 

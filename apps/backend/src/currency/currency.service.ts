@@ -14,7 +14,7 @@ interface RateCache {
 export class CurrencyService {
   private readonly logger = new Logger(CurrencyService.name);
   private rateCache: RateCache | null = null;
-  private readonly cacheTtlMs = 60 * 60 * 1000; // 1 hour TTL
+  private readonly cacheTtlMs = 5 * 24 * 60 * 60 * 1000; // 5 days TTL (432,000,000 ms)
 
   constructor(
     @InjectRepository(ExchangeRateFallback)
@@ -24,10 +24,44 @@ export class CurrencyService {
 
   private async fetchExternalRates(base: string = 'USD'): Promise<Record<string, number>> {
     const now = Date.now();
+    // 1. Memory cache check
     if (this.rateCache && this.rateCache.base === base && this.rateCache.expiresAt > now) {
       return this.rateCache.rates;
     }
 
+    // 2. Database cache check (persisted across server restarts)
+    const storedRates = await this.fallbackRepo.find({
+      where: { base_currency: base },
+    });
+
+    if (storedRates.length > 0) {
+      const validStoredRates = storedRates.filter((item) => {
+        if (!item.last_fetched_at) return false;
+        const fetchedAt = new Date(item.last_fetched_at).getTime();
+        return now - fetchedAt < this.cacheTtlMs;
+      });
+
+      if (validStoredRates.length === storedRates.length && validStoredRates.length > 0) {
+        const ratesMap: Record<string, number> = { [base]: 1 };
+        let oldestFetchedAt = now;
+
+        for (const item of validStoredRates) {
+          ratesMap[item.target_currency] = Number(item.rate);
+          const t = new Date(item.last_fetched_at!).getTime();
+          if (t < oldestFetchedAt) oldestFetchedAt = t;
+        }
+
+        this.rateCache = {
+          base,
+          rates: ratesMap,
+          expiresAt: oldestFetchedAt + this.cacheTtlMs,
+        };
+
+        return ratesMap;
+      }
+    }
+
+    // 3. Fetch fresh rates from Exchange Rate API if DB cache is missing or older than 5 days
     const apiKey = this.configService.get<string>('EXCHANGERATE_API_KEY');
     if (!apiKey) {
       throw new Error('Exchange rate API key is not configured');
@@ -44,13 +78,38 @@ export class CurrencyService {
         throw new Error('Invalid rate response structure');
       }
 
+      const rates: Record<string, number> = data.conversion_rates;
+      const fetchDate = new Date();
+
       this.rateCache = {
         base,
-        rates: data.conversion_rates,
+        rates,
         expiresAt: now + this.cacheTtlMs,
       };
 
-      return data.conversion_rates;
+      // Persist fresh rates to DB asynchronously with last_fetched_at
+      for (const [targetCurr, rateVal] of Object.entries(rates)) {
+        if (targetCurr === base) continue;
+        let record = await this.fallbackRepo.findOne({
+          where: { base_currency: base, target_currency: targetCurr },
+        });
+
+        if (record) {
+          record.rate = rateVal;
+          record.last_fetched_at = fetchDate;
+          await this.fallbackRepo.save(record);
+        } else {
+          record = this.fallbackRepo.create({
+            base_currency: base,
+            target_currency: targetCurr,
+            rate: rateVal,
+            last_fetched_at: fetchDate,
+          });
+          await this.fallbackRepo.save(record);
+        }
+      }
+
+      return rates;
     } catch (err: any) {
       this.logger.warn(`Failed to fetch exchange rates from external API: ${err.message}`);
       throw new Error('External exchange rate API unavailable');
