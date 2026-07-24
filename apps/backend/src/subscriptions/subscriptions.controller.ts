@@ -10,6 +10,7 @@ import {
   UseGuards,
   Request,
   HttpStatus,
+  Query,
 } from '@nestjs/common';
 import { SubscriptionsService } from './subscriptions.service';
 import { CreateSubscriptionDto } from './dto/create-subscription.dto';
@@ -33,8 +34,11 @@ export class SubscriptionsController {
 
   @Get()
   @HttpCode(200)
-  findAll(@Request() req: Request & { user: AuthUser }) {
-    return this.subscriptionsService.findAll(req);
+  findAll(
+    @Request() req: Request & { user: AuthUser },
+    @Query('tagId') tagId?: string,
+  ) {
+    return this.subscriptionsService.findAll(req, tagId);
   }
 
   @Get(':id')

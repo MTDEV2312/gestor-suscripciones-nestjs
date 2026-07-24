@@ -1,10 +1,15 @@
+import { SubscriptionHistory } from 'src/subscription-history/entities/subscription-history.entity';
+import { Tag } from 'src/tags/entities/tag.entity';
 import { User } from 'src/users/entities/user.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
   JoinColumn,
+  JoinTable,
+  ManyToMany,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -103,4 +108,18 @@ export class Subscription {
   })
   @JoinColumn({ name: 'user_id' })
   user!: User;
+
+  @OneToMany(() => SubscriptionHistory, (history) => history.subscription)
+  history!: SubscriptionHistory[];
+
+  @ManyToMany(() => Tag, (tag) => tag.subscriptions, {
+    cascade: true,
+  })
+  @JoinTable({
+    name: 'subscription_tags',
+    joinColumn: { name: 'subscription_id', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'tag_id', referencedColumnName: 'id' },
+  })
+  tags!: Tag[];
 }
+

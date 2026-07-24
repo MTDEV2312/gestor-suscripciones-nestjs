@@ -2,9 +2,11 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { SubscriptionsService } from './subscriptions.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Subscription } from './entities/subscription.entity';
+import { Tag } from 'src/tags/entities/tag.entity';
 import { UsersService } from 'src/users/users.service';
 import { NotFoundException } from '@nestjs/common';
 import { User } from 'src/users/entities/user.entity';
+import { SubscriptionHistoryService } from 'src/subscription-history/subscription-history.service';
 
 describe('SubscriptionsService', () => {
   let service: SubscriptionsService;
@@ -23,6 +25,8 @@ describe('SubscriptionsService', () => {
     created_at: new Date(),
     updated_at: new Date(),
     user: {} as User,
+    history: [],
+    tags: [],
   };
 
   const mockLeftJoinAndSelect = jest.fn().mockReturnThis();
@@ -53,9 +57,19 @@ describe('SubscriptionsService', () => {
     createQueryBuilder: mockCreateQueryBuilder,
   };
 
+  const mockTagRepository = {
+    find: jest.fn().mockResolvedValue([]),
+    findOne: jest.fn(),
+  };
+
   const mockFindById = jest.fn();
   const mockUsersService = {
     findById: mockFindById,
+  };
+
+  const mockRecordChange = jest.fn();
+  const mockSubscriptionHistoryService = {
+    recordChange: mockRecordChange,
   };
 
   beforeEach(async () => {
@@ -67,8 +81,16 @@ describe('SubscriptionsService', () => {
           useValue: mockSubscriptionRepository,
         },
         {
+          provide: getRepositoryToken(Tag),
+          useValue: mockTagRepository,
+        },
+        {
           provide: UsersService,
           useValue: mockUsersService,
+        },
+        {
+          provide: SubscriptionHistoryService,
+          useValue: mockSubscriptionHistoryService,
         },
       ],
     }).compile();
@@ -117,6 +139,7 @@ describe('SubscriptionsService', () => {
       expect(mockCreate).toHaveBeenCalledWith({
         ...createDto,
         user_id: 'user-uuid',
+        tags: [],
       });
       expect(mockSave).toHaveBeenCalledWith(mockSubscription);
       expect(result).toEqual({
@@ -144,6 +167,7 @@ describe('SubscriptionsService', () => {
       expect(mockCreate).toHaveBeenCalledWith({
         ...domainCreateDto,
         user_id: 'user-uuid',
+        tags: [],
       });
       expect(mockSave).toHaveBeenCalledWith(expectedMockSub);
       expect(result).toEqual({
@@ -163,12 +187,28 @@ describe('SubscriptionsService', () => {
     };
 
     it('should find all subscriptions belonging to the user', async () => {
-      mockFind.mockResolvedValue([mockSubscription]);
+      mockGetMany.mockResolvedValue([mockSubscription]);
 
       const result = await service.findAll(req);
 
-      expect(mockFind).toHaveBeenCalledWith({
-        where: { user_id: 'user-uuid' },
+      expect(mockCreateQueryBuilder).toHaveBeenCalledWith('subscription');
+      expect(mockLeftJoinAndSelect).toHaveBeenCalledWith(
+        'subscription.tags',
+        'tag',
+      );
+      expect(mockWhere).toHaveBeenCalledWith('subscription.user_id = :userId', {
+        userId: 'user-uuid',
+      });
+      expect(result).toEqual([mockSubscription]);
+    });
+
+    it('should filter subscriptions by tagId when tagId is provided', async () => {
+      mockGetMany.mockResolvedValue([mockSubscription]);
+
+      const result = await service.findAll(req, 'tag-uuid-1');
+
+      expect(mockAndWhere).toHaveBeenCalledWith('tag.id = :tagId', {
+        tagId: 'tag-uuid-1',
       });
       expect(result).toEqual([mockSubscription]);
     });
@@ -190,6 +230,7 @@ describe('SubscriptionsService', () => {
 
       expect(mockFindOne).toHaveBeenCalledWith({
         where: { id: 'sub-uuid', user_id: 'user-uuid' },
+        relations: { tags: true },
       });
       expect(result).toEqual(mockSubscription);
     });
@@ -226,9 +267,58 @@ describe('SubscriptionsService', () => {
 
       expect(mockFindOne).toHaveBeenCalledWith({
         where: { id: 'sub-uuid', user_id: 'user-uuid' },
+        relations: { tags: true },
       });
       expect(mockSave).toHaveBeenCalled();
       expect(result.name).toBe('New Name');
+      expect(mockRecordChange).not.toHaveBeenCalled();
+    });
+
+    it('should record history when price changes', async () => {
+      mockFindOne.mockResolvedValue({
+        ...mockSubscription,
+        price: 15.99,
+      });
+      mockSave.mockImplementation((x) => Promise.resolve(x));
+
+      await service.update('sub-uuid', { price: 19.99 }, req);
+
+      expect(mockRecordChange).toHaveBeenCalledWith({
+        subscription_id: 'sub-uuid',
+        price: 19.99,
+        old_price: 15.99,
+        frequency: 'MONTHLY',
+        old_frequency: 'MONTHLY',
+        currency: 'USD',
+        effective_date: expect.any(String),
+      });
+    });
+
+    it('should recalculate next_renewal_date and record history when frequency changes', async () => {
+      mockFindOne.mockResolvedValue({
+        ...mockSubscription,
+        start_date: '2026-07-10',
+        frequency: 'MONTHLY',
+        price: 15.99,
+      });
+      mockSave.mockImplementation((x) => Promise.resolve(x));
+
+      const result = await service.update(
+        'sub-uuid',
+        { frequency: 'YEARLY' },
+        req,
+      );
+
+      expect(result.next_renewal_date).toBe('2027-07-10');
+      expect(mockRecordChange).toHaveBeenCalledWith({
+        subscription_id: 'sub-uuid',
+        price: 15.99,
+        old_price: 15.99,
+        frequency: 'YEARLY',
+        old_frequency: 'MONTHLY',
+        currency: 'USD',
+        effective_date: expect.any(String),
+      });
     });
   });
 

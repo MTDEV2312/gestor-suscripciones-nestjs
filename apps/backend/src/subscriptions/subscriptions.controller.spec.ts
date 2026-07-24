@@ -84,6 +84,7 @@ describe('SubscriptionsController', () => {
 
       expect(mockSubscriptionsService.findAll).toHaveBeenCalledWith(
         mockRequest,
+        undefined,
       );
       expect(result).toEqual(expectedResult);
     });
