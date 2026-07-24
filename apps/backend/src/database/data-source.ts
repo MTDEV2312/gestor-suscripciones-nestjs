@@ -39,4 +39,3 @@ export const dataSourceOptions: DataSourceOptions = isPostgres
     };
 
 export const AppDataSource = new DataSource(dataSourceOptions);
-export default AppDataSource;
