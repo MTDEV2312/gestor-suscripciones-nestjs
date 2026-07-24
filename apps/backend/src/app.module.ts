@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { SubscriptionsModule } from './subscriptions/subscriptions.module';
+import { SubscriptionHistoryModule } from './subscription-history/subscription-history.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from './users/users.module';
 import { PasswordService } from './security/password.service';
@@ -15,6 +16,9 @@ import { NotificationsService } from './notifications/notifications.service';
 import { NotificationsModule } from './notifications/notifications.module';
 import { dataSourceOptions } from './database/data-source';
 
+import { CurrencyModule } from './currency/currency.module';
+import { TagsModule } from './tags/tags.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -27,10 +31,13 @@ import { dataSourceOptions } from './database/data-source';
     }),
     ScheduleModule.forRoot(),
     SubscriptionsModule,
+    SubscriptionHistoryModule,
     UsersModule,
     SecurityModule,
     AuthModule,
     DashboardModule,
+    CurrencyModule,
+    TagsModule,
     CronJobModule,
     NotificationsModule,
   ],
@@ -38,3 +45,4 @@ import { dataSourceOptions } from './database/data-source';
   providers: [AppService, PasswordService, NotificationsService],
 })
 export class AppModule {}
+
