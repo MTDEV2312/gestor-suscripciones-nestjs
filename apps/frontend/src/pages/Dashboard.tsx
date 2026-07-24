@@ -7,6 +7,7 @@ import {
   SubscriptionHistory,
 } from '../services/api';
 import { SubscriptionCharts } from '../components/SubscriptionCharts';
+import { formatDate, getLocalTodayString } from '../utils/date';
 import {
   Plus,
   Trash2,
@@ -120,7 +121,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
     setFormCurrency('USD');
     setFormFrequency('MONTHLY');
     setFormType('SUBSCRIPTION');
-    const today = new Date().toISOString().split('T')[0];
+    const today = getLocalTodayString();
     setFormStartDate(today);
     setFormNextRenewalDate(today);
     setFormIsActive(true);
@@ -382,7 +383,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 <div key={idx} className="bg-gray-800 border border-gray-700 rounded-lg p-4 flex justify-between items-center">
                   <span className="font-semibold text-gray-300">{renew.name}</span>
                   <span className="text-sm text-indigo-400 bg-indigo-500/10 px-2 py-1 rounded">
-                    {new Date(renew.date).toLocaleDateString()}
+                    {formatDate(renew.date)}
                   </span>
                 </div>
               ))}
@@ -484,7 +485,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         </span>
                       </td>
                       <td className="px-6 py-4 text-gray-400">
-                        {new Date(sub.next_renewal_date).toLocaleDateString()}
+                        {formatDate(sub.next_renewal_date)}
                       </td>
                       <td className="px-6 py-4 text-center">
                         <button
@@ -572,7 +573,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                       className="bg-gray-800 border border-gray-700 rounded-lg p-3 text-sm flex flex-col gap-1"
                     >
                       <div className="flex justify-between items-center text-xs text-gray-400">
-                        <span>Fecha de cambio: {item.effective_date}</span>
+                        <span>Fecha de cambio: {formatDate(item.effective_date)}</span>
                         <span>{new Date(item.created_at).toLocaleTimeString()}</span>
                       </div>
                       <div className="flex items-center justify-between mt-1">
