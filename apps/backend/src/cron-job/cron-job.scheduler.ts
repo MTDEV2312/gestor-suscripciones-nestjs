@@ -12,7 +12,7 @@ export class RenewalScheduler {
     private readonly notificationsService: NotificationsService,
   ) {}
 
-  @Cron('0 8 * * *')
+  @Cron('0 20 * * *')
   async checkRenewals() {
     this.logger.log('Starting checkRenewals cron job...');
 
