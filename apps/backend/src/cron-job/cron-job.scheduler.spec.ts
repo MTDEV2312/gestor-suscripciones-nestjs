@@ -18,6 +18,7 @@ describe('RenewalScheduler', () => {
 
     const mockNotificationsService = {
       sendNotification: jest.fn().mockResolvedValue(undefined),
+      escapeHtml: jest.fn((text: string) => text),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -68,11 +69,11 @@ describe('RenewalScheduler', () => {
       await scheduler.checkUpcomingRenewals(7);
 
       expect(notificationsService.sendNotification).toHaveBeenCalledWith(
-        expect.stringContaining('[Gestor Suscripciones] Recordatorio preventivo (7 días restantes):'),
+        expect.stringContaining('Recordatorio preventivo (7 días restantes):'),
         'testuser',
       );
       expect(notificationsService.sendNotification).toHaveBeenCalledWith(
-        expect.stringContaining('- Netflix el 2026-07-30. Costo: 15.99 USD.'),
+        expect.stringContaining('📅 <b>Netflix</b>\n💳 Costo: <code>15.99 USD</code>\n📅 Fecha: <i>2026-07-30</i>'),
         'testuser',
       );
     });
@@ -96,7 +97,11 @@ describe('RenewalScheduler', () => {
       await scheduler.checkUpcomingRenewals(3);
 
       expect(notificationsService.sendNotification).toHaveBeenCalledWith(
-        expect.stringContaining('[Gestor Suscripciones] Recordatorio preventivo (3 días restantes):'),
+        expect.stringContaining('Recordatorio preventivo (3 días restantes):'),
+        'testuser',
+      );
+      expect(notificationsService.sendNotification).toHaveBeenCalledWith(
+        expect.stringContaining('⚠️ <b>Spotify</b>'),
         'testuser',
       );
     });
@@ -120,7 +125,11 @@ describe('RenewalScheduler', () => {
       await scheduler.checkUpcomingRenewals(1);
 
       expect(notificationsService.sendNotification).toHaveBeenCalledWith(
-        expect.stringContaining('[Gestor Suscripciones] ¡Alerta de cobro inminente! (1 día restante):'),
+        expect.stringContaining('¡Alerta de cobro inminente! (1 día restante):'),
+        'testuser',
+      );
+      expect(notificationsService.sendNotification).toHaveBeenCalledWith(
+        expect.stringContaining('🚨 <b>AWS</b>'),
         'testuser',
       );
     });

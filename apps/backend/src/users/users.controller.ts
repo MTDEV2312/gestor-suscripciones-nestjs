@@ -10,6 +10,7 @@ import {
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { PasswordUpdateDto } from './dto/password-update.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth/jwt-auth.guard';
 import { AuthUser } from 'src/auth/interfaces/auth-user/auth-user.interface';
 
@@ -31,6 +32,15 @@ export class UsersController {
     @Request() req: Request & { user: AuthUser },
   ) {
     return this.usersService.update(updateUserDto, req);
+  }
+
+  @Patch('change-password')
+  @HttpCode(200)
+  changePassword(
+    @Body() dto: PasswordUpdateDto,
+    @Request() req: Request & { user: AuthUser },
+  ) {
+    return this.usersService.changePassword(dto, req);
   }
 
   @Delete()

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { api, User } from '../services/api';
-import { ArrowLeft, Send, AlertCircle, CheckCircle, Trash2, Loader, Save, Clock } from 'lucide-react';
+import { ArrowLeft, Send, AlertCircle, CheckCircle, Trash2, Loader, Save, Clock, Lock, Key } from 'lucide-react';
 
 interface ProfileProps {
   onBackToDashboard: () => void;
@@ -15,6 +15,13 @@ export const Profile: React.FC<ProfileProps> = ({ onBackToDashboard, onAccountDe
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [pwSaving, setPwSaving] = useState(false);
+  const [pwError, setPwError] = useState<string | null>(null);
+  const [pwSuccess, setPwSuccess] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -50,6 +57,53 @@ export const Profile: React.FC<ProfileProps> = ({ onBackToDashboard, onAccountDe
       setError(err.message || 'Error al guardar los cambios.');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPwError(null);
+    setPwSuccess(false);
+
+    if (!currentPassword) {
+      setPwError('Por favor ingresa tu contraseña actual.');
+      return;
+    }
+    if (!newPassword) {
+      setPwError('Por favor ingresa tu nueva contraseña.');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPwError('Las contraseñas nuevas no coinciden.');
+      return;
+    }
+    if (newPassword.length < 8 || newPassword.length > 16) {
+      setPwError('La contraseña debe tener entre 8 y 16 caracteres.');
+      return;
+    }
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&._-])[A-Za-z\d@$!%*?&._-]+$/;
+    if (!passwordRegex.test(newPassword)) {
+      setPwError(
+        'La contraseña debe tener una mayúscula, una minúscula, un número y un carácter especial.',
+      );
+      return;
+    }
+
+    setPwSaving(true);
+    try {
+      await api.user.changePassword({
+        currentPassword,
+        newPassword,
+        repeatPassword: confirmPassword,
+      });
+      setPwSuccess(true);
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (err: any) {
+      setPwError(err.message || 'Error al cambiar la contraseña.');
+    } finally {
+      setPwSaving(false);
     }
   };
 
@@ -188,6 +242,108 @@ export const Profile: React.FC<ProfileProps> = ({ onBackToDashboard, onAccountDe
                 >
                   {saving ? <Loader className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                   Guardar Cambios
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        {/* Password Change Card */}
+        <div className="bg-gray-900 border border-gray-800 rounded-2xl shadow-xl overflow-hidden">
+          <div className="px-8 py-6 border-b border-gray-800 bg-gray-950">
+            <h3 className="text-xl font-bold text-gray-100 flex items-center gap-2">
+              <Key className="w-5 h-5 text-blue-500" />
+              Cambiar Contraseña
+            </h3>
+            <p className="text-sm text-gray-400 mt-1">
+              Actualiza tu contraseña de acceso por seguridad.
+            </p>
+          </div>
+
+          <div className="p-8 space-y-6">
+            {pwError && (
+              <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-lg flex items-center gap-3 text-sm">
+                <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                <span>{pwError}</span>
+              </div>
+            )}
+
+            {pwSuccess && (
+              <div className="bg-green-500/10 border border-green-500/20 text-green-400 p-4 rounded-lg flex items-center gap-3 text-sm">
+                <CheckCircle className="w-5 h-5 flex-shrink-0" />
+                <span>Contraseña actualizada exitosamente.</span>
+              </div>
+            )}
+
+            <form onSubmit={handleChangePassword} className="space-y-4">
+              <div>
+                <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-400 mb-1">
+                  Contraseña Actual
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-500">
+                    <Lock className="w-5 h-5" />
+                  </div>
+                  <input
+                    id="currentPassword"
+                    type="password"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    className="block w-full pl-10 pr-3 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition"
+                    placeholder="••••••••"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="newPassword" className="block text-sm font-medium text-gray-400 mb-1">
+                  Nueva Contraseña
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-500">
+                    <Lock className="w-5 h-5" />
+                  </div>
+                  <input
+                    id="newPassword"
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="block w-full pl-10 pr-3 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition"
+                    placeholder="••••••••"
+                  />
+                </div>
+                <p className="text-xs text-gray-500 mt-1.5">
+                  Entre 8 y 16 caracteres, con mayúscula, minúscula, número y carácter especial.
+                </p>
+              </div>
+
+              <div>
+                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-400 mb-1">
+                  Confirmar Nueva Contraseña
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-500">
+                    <Lock className="w-5 h-5" />
+                  </div>
+                  <input
+                    id="confirmPassword"
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="block w-full pl-10 pr-3 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition"
+                    placeholder="••••••••"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end pt-4">
+                <button
+                  type="submit"
+                  disabled={pwSaving}
+                  className="flex items-center gap-2 py-2 px-4 border border-transparent rounded-lg text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition disabled:opacity-50"
+                >
+                  {pwSaving ? <Loader className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                  Cambiar Contraseña
                 </button>
               </div>
             </form>

@@ -11,6 +11,7 @@ describe('UsersController', () => {
   const mockUsersService = {
     findUserInfo: jest.fn(),
     update: jest.fn(),
+    changePassword: jest.fn(),
     remove: jest.fn(),
   };
 
@@ -69,6 +70,25 @@ describe('UsersController', () => {
 
       const result = await controller.update(dto, mockRequest);
       expect(mockUsersService.update).toHaveBeenCalledWith(dto, mockRequest);
+      expect(result).toEqual(expectedResult);
+    });
+  });
+
+  describe('changePassword (PATCH /change-password)', () => {
+    it('should call usersService.changePassword with dto and request', async () => {
+      const dto = {
+        currentPassword: 'OldPassword123!',
+        newPassword: 'NewPassword123!',
+        repeatPassword: 'NewPassword123!',
+      };
+      const expectedResult = { message: 'Contraseña actualizada correctamente' };
+      mockUsersService.changePassword.mockResolvedValue(expectedResult);
+
+      const result = await controller.changePassword(dto, mockRequest);
+      expect(mockUsersService.changePassword).toHaveBeenCalledWith(
+        dto,
+        mockRequest,
+      );
       expect(result).toEqual(expectedResult);
     });
   });

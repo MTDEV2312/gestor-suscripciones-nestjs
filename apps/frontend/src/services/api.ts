@@ -149,6 +149,10 @@ export const api = {
       method: 'PATCH',
       body: JSON.stringify(body),
     }),
+    changePassword: (body: { currentPassword?: string; newPassword?: string; repeatPassword?: string }) => request<{ message: string }>('/users/change-password', {
+      method: 'PATCH',
+      body: JSON.stringify(body),
+    }),
     delete: () => request<void>('/users', {
       method: 'DELETE',
     }),

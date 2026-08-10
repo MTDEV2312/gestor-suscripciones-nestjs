@@ -1,14 +1,21 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { PasswordUpdateDto } from './dto/password-update.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import { AuthUser } from 'src/auth/interfaces/auth-user/auth-user.interface';
+import { PasswordService } from 'src/security/password.service';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User) private readonly userRepository: Repository<User>,
+    private readonly passwordService: PasswordService,
   ) {}
 
   async findByEmail(email: string): Promise<User | null> {
@@ -68,6 +75,37 @@ export class UsersService {
 
     Object.assign(user, updateUserDto);
     return await this.userRepository.save(user);
+  }
+
+  async changePassword(
+    passwordUpdateDto: PasswordUpdateDto,
+    req: { user: AuthUser },
+  ) {
+    if (passwordUpdateDto.newPassword !== passwordUpdateDto.repeatPassword) {
+      throw new BadRequestException('Las contraseñas no coinciden');
+    }
+
+    const user = await this.userRepository.findOne({
+      where: { id: req.user.id },
+    });
+    if (!user) {
+      throw new NotFoundException('Usuario no encontrado');
+    }
+
+    const isPasswordValid = await this.passwordService.comparePasswords(
+      passwordUpdateDto.currentPassword,
+      user.password,
+    );
+    if (!isPasswordValid) {
+      throw new BadRequestException('La contraseña actual es incorrecta');
+    }
+
+    user.password = await this.passwordService.hashPassword(
+      passwordUpdateDto.newPassword,
+    );
+    await this.userRepository.save(user);
+
+    return { message: 'Contraseña actualizada correctamente' };
   }
 
   async remove(req: { user: AuthUser }) {

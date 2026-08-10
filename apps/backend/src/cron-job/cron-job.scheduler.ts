@@ -55,9 +55,23 @@ export class RenewalScheduler {
       // Enviar notificación consolidada si tiene telegramUsername configurado
       if (group.telegramUsername) {
         try {
-          let message = `[Gestor Suscripciones] ¡Alerta! Tenés las siguientes renovaciones pendientes:\n`;
+          let message = `<b>🚨 Gestor de Suscripciones</b>\n`;
+          message += `━━━━━━━━━━━━━━━━━━━━━\n`;
+          message += `<b>¡Alerta! Renovaciones pendientes:</b>\n\n`;
           for (const sub of subs) {
-            message += `- ${sub.name} el ${sub.next_renewal_date}. Costo: ${sub.price} ${sub.currency}.\n`;
+            const name = this.notificationsService.escapeHtml(sub.name || '');
+            const price = this.notificationsService.escapeHtml(
+              String(sub.price ?? ''),
+            );
+            const currency = this.notificationsService.escapeHtml(
+              sub.currency || '',
+            );
+            const date = this.notificationsService.escapeHtml(
+              sub.next_renewal_date || '',
+            );
+            message += `🚨 <b>${name}</b>\n`;
+            message += `💳 Costo: <code>${price} ${currency}</code>\n`;
+            message += `📅 Fecha: <i>${date}</i>\n\n`;
           }
           await this.notificationsService.sendNotification(
             message.trim(),
@@ -111,17 +125,33 @@ export class RenewalScheduler {
       groupedByUser.set(userKey, group);
     }
 
-    const title =
+    const headerTitle =
       days === 1
-        ? '[Gestor Suscripciones] ¡Alerta de cobro inminente! (1 día restante):'
-        : `[Gestor Suscripciones] Recordatorio preventivo (${days} días restantes):`;
+        ? '<b>🚨 Gestor de Suscripciones</b>\n━━━━━━━━━━━━━━━━━━━━━\n<b>¡Alerta de cobro inminente! (1 día restante):</b>'
+        : days === 3
+        ? '<b>⚠️ Gestor de Suscripciones</b>\n━━━━━━━━━━━━━━━━━━━━━\n<b>Recordatorio preventivo (3 días restantes):</b>'
+        : '<b>📅 Gestor de Suscripciones</b>\n━━━━━━━━━━━━━━━━━━━━━\n<b>Recordatorio preventivo (7 días restantes):</b>';
+
+    const itemEmoji = days === 1 ? '🚨' : days === 3 ? '⚠️' : '📅';
 
     for (const [userId, group] of groupedByUser.entries()) {
       if (group.telegramUsername) {
         try {
-          let message = `${title}\n`;
+          let message = `${headerTitle}\n\n`;
           for (const sub of group.subscriptions) {
-            message += `- ${sub.name} el ${sub.next_renewal_date}. Costo: ${sub.price} ${sub.currency}.\n`;
+            const name = this.notificationsService.escapeHtml(sub.name || '');
+            const price = this.notificationsService.escapeHtml(
+              String(sub.price ?? ''),
+            );
+            const currency = this.notificationsService.escapeHtml(
+              sub.currency || '',
+            );
+            const date = this.notificationsService.escapeHtml(
+              sub.next_renewal_date || '',
+            );
+            message += `${itemEmoji} <b>${name}</b>\n`;
+            message += `💳 Costo: <code>${price} ${currency}</code>\n`;
+            message += `📅 Fecha: <i>${date}</i>\n\n`;
           }
           await this.notificationsService.sendNotification(
             message.trim(),

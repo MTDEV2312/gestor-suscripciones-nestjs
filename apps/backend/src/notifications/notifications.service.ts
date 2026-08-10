@@ -14,6 +14,16 @@ export class NotificationsService {
     this.isHtml = process.env.ISHTML || 'yes';
     this.isLinks = process.env.ISLINKS || 'no';
   }
+  escapeHtml(text: string): string {
+    if (!text) return '';
+    return text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
   async sendNotification(
     message: string,
     telegramUsername?: string,

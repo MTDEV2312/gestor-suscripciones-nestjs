@@ -2,7 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { UsersService } from './users.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
-import { NotFoundException } from '@nestjs/common';
+import { NotFoundException, BadRequestException } from '@nestjs/common';
+import { PasswordService } from 'src/security/password.service';
 
 describe('UsersService', () => {
   let service: UsersService;
@@ -26,6 +27,11 @@ describe('UsersService', () => {
     remove: jest.fn(),
   };
 
+  const mockPasswordService = {
+    comparePasswords: jest.fn(),
+    hashPassword: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -33,6 +39,10 @@ describe('UsersService', () => {
         {
           provide: getRepositoryToken(User),
           useValue: mockUserRepository,
+        },
+        {
+          provide: PasswordService,
+          useValue: mockPasswordService,
         },
       ],
     }).compile();
@@ -172,6 +182,72 @@ describe('UsersService', () => {
       const result = await service.update({ notificationHour: 8 }, req);
       expect(mockUserRepository.save).toHaveBeenCalled();
       expect(result.notificationHour).toBe(8);
+    });
+  });
+
+  describe('changePassword', () => {
+    const req = {
+      user: {
+        id: 'user-uuid',
+        username: 'testuser',
+        email: 'test@example.com',
+      },
+    };
+
+    const dto = {
+      currentPassword: 'OldPassword123!',
+      newPassword: 'NewPassword123!',
+      repeatPassword: 'NewPassword123!',
+    };
+
+    it('should throw BadRequestException if newPassword and repeatPassword do not match', async () => {
+      const mismatchDto = { ...dto, repeatPassword: 'DifferentPassword123!' };
+      await expect(service.changePassword(mismatchDto, req)).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('should throw NotFoundException if user is not found', async () => {
+      mockUserRepository.findOne.mockResolvedValue(null);
+      await expect(service.changePassword(dto, req)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('should throw BadRequestException if currentPassword is incorrect', async () => {
+      mockUserRepository.findOne.mockResolvedValue(mockUser);
+      mockPasswordService.comparePasswords.mockResolvedValue(false);
+
+      await expect(service.changePassword(dto, req)).rejects.toThrow(
+        BadRequestException,
+      );
+      expect(mockPasswordService.comparePasswords).toHaveBeenCalledWith(
+        'OldPassword123!',
+        mockUser.password,
+      );
+    });
+
+    it('should update password successfully when currentPassword is correct', async () => {
+      mockUserRepository.findOne.mockResolvedValue({ ...mockUser });
+      mockPasswordService.comparePasswords.mockResolvedValue(true);
+      mockPasswordService.hashPassword.mockResolvedValue('newhashedpassword');
+      mockUserRepository.save.mockImplementation((u) => Promise.resolve(u));
+
+      const result = await service.changePassword(dto, req);
+
+      expect(mockPasswordService.comparePasswords).toHaveBeenCalledWith(
+        'OldPassword123!',
+        mockUser.password,
+      );
+      expect(mockPasswordService.hashPassword).toHaveBeenCalledWith(
+        'NewPassword123!',
+      );
+      expect(mockUserRepository.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          password: 'newhashedpassword',
+        }),
+      );
+      expect(result).toEqual({ message: 'Contraseña actualizada correctamente' });
     });
   });
 
