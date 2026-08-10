@@ -379,6 +379,34 @@ describe('SubscriptionsService', () => {
       );
       expect(result).toEqual(mockList);
     });
+
+    it('should filter by currentHour when provided', async () => {
+      const mockList = [mockSubscription];
+      mockGetMany.mockResolvedValue(mockList);
+
+      const result = await service.findDueRenewals(14);
+
+      expect(mockAndWhere).toHaveBeenCalledWith(
+        '(COALESCE(user.notificationHour, 20) = :currentHour)',
+        { currentHour: 14 },
+      );
+      expect(result).toEqual(mockList);
+    });
+  });
+
+  describe('findRenewalsInDays', () => {
+    it('should query subscriptions in specified days and filter by currentHour', async () => {
+      const mockList = [mockSubscription];
+      mockGetMany.mockResolvedValue(mockList);
+
+      const result = await service.findRenewalsInDays(7, new Date('2026-07-20T00:00:00Z'), 10);
+
+      expect(mockAndWhere).toHaveBeenCalledWith(
+        '(COALESCE(user.notificationHour, 20) = :currentHour)',
+        { currentHour: 10 },
+      );
+      expect(result).toEqual(mockList);
+    });
   });
 
   describe('processDueRenewals', () => {

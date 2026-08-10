@@ -5,6 +5,7 @@ export interface User {
   username: string;
   email: string;
   telegramUsername?: string;
+  notificationHour?: number;
 }
 
 export interface Tag {
@@ -144,7 +145,7 @@ export const api = {
   },
   user: {
     me: () => request<User>('/users/me'),
-    update: (body: { telegramUsername?: string; username?: string; email?: string }) => request<User>('/users', {
+    update: (body: { telegramUsername?: string; username?: string; email?: string; notificationHour?: number }) => request<User>('/users', {
       method: 'PATCH',
       body: JSON.stringify(body),
     }),

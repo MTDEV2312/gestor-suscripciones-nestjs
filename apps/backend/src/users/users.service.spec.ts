@@ -12,9 +12,11 @@ describe('UsersService', () => {
     username: 'testuser',
     email: 'test@example.com',
     password: 'hashedpassword',
+    notificationHour: 20,
     createdAt: new Date(),
     updatedAt: new Date(),
     subscriptions: [],
+    tags: [],
   };
 
   const mockUserRepository = {
@@ -149,8 +151,7 @@ describe('UsersService', () => {
     it('should update and save user when data is valid', async () => {
       mockUserRepository.findOne
         .mockResolvedValueOnce(mockUser) // find original user
-        .mockResolvedValueOnce(null) // no username conflict
-        .mockResolvedValueOnce(null); // no email conflict
+        .mockResolvedValueOnce(null); // no username conflict
       mockUserRepository.save.mockResolvedValue({
         ...mockUser,
         username: 'updated',
@@ -159,6 +160,18 @@ describe('UsersService', () => {
       const result = await service.update({ username: 'updated' }, req);
       expect(mockUserRepository.save).toHaveBeenCalled();
       expect(result.username).toBe('updated');
+    });
+
+    it('should update notificationHour when provided', async () => {
+      mockUserRepository.findOne.mockResolvedValue(mockUser);
+      mockUserRepository.save.mockResolvedValue({
+        ...mockUser,
+        notificationHour: 8,
+      });
+
+      const result = await service.update({ notificationHour: 8 }, req);
+      expect(mockUserRepository.save).toHaveBeenCalled();
+      expect(result.notificationHour).toBe(8);
     });
   });
 

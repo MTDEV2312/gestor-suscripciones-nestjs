@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { api, User } from '../services/api';
-import { ArrowLeft, Send, AlertCircle, CheckCircle, Trash2, Loader, Save } from 'lucide-react';
+import { ArrowLeft, Send, AlertCircle, CheckCircle, Trash2, Loader, Save, Clock } from 'lucide-react';
 
 interface ProfileProps {
   onBackToDashboard: () => void;
@@ -10,6 +10,7 @@ interface ProfileProps {
 export const Profile: React.FC<ProfileProps> = ({ onBackToDashboard, onAccountDeleted }) => {
   const [user, setUser] = useState<User | null>(null);
   const [telegramUsername, setTelegramUsername] = useState('');
+  const [notificationHour, setNotificationHour] = useState<number>(20);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -21,6 +22,7 @@ export const Profile: React.FC<ProfileProps> = ({ onBackToDashboard, onAccountDe
         const data = await api.user.me();
         setUser(data);
         setTelegramUsername(data.telegramUsername || '');
+        setNotificationHour(data.notificationHour ?? 20);
       } catch (err: any) {
         setError(err.message || 'Error al obtener los datos del perfil.');
       } finally {
@@ -37,8 +39,12 @@ export const Profile: React.FC<ProfileProps> = ({ onBackToDashboard, onAccountDe
     setSaving(true);
 
     try {
-      const updatedUser = await api.user.update({ telegramUsername: telegramUsername || undefined });
+      const updatedUser = await api.user.update({
+        telegramUsername: telegramUsername || undefined,
+        notificationHour: Number(notificationHour),
+      });
       setUser(updatedUser);
+      setNotificationHour(updatedUser.notificationHour ?? 20);
       setSuccess(true);
     } catch (err: any) {
       setError(err.message || 'Error al guardar los cambios.');
@@ -145,6 +151,32 @@ export const Profile: React.FC<ProfileProps> = ({ onBackToDashboard, onAccountDe
                 </div>
                 <p className="text-xs text-gray-500 mt-1.5">
                   Utilizado para enviarte notificaciones y recordatorios automáticos de tus próximas renovaciones.
+                </p>
+              </div>
+
+              <div>
+                <label htmlFor="notificationHour" className="block text-sm font-medium text-gray-400 mb-1">
+                  Hora de notificaciones
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-500">
+                    <Clock className="w-5 h-5" />
+                  </div>
+                  <select
+                    id="notificationHour"
+                    value={notificationHour}
+                    onChange={(e) => setNotificationHour(Number(e.target.value))}
+                    className="block w-full pl-10 pr-3 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition"
+                  >
+                    {Array.from({ length: 24 }, (_, i) => i).map((hour) => (
+                      <option key={hour} value={hour}>
+                        {`${hour.toString().padStart(2, '0')}:00`}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <p className="text-xs text-gray-500 mt-1.5">
+                  Selecciona la hora del día en la que deseas recibir los recordatorios de renovaciones.
                 </p>
               </div>
 

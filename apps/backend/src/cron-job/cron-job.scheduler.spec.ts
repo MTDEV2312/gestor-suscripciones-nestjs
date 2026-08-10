@@ -38,13 +38,15 @@ describe('RenewalScheduler', () => {
   });
 
   describe('checkRenewals threshold windows (7d, 3d, 1d)', () => {
-    it('should query subscriptions renewing in 7, 3, and 1 day', async () => {
-      await scheduler.checkRenewals();
+    it('should query subscriptions renewing in 7, 3, and 1 day with current hour', async () => {
+      const baseDate = new Date('2026-08-09T14:30:00Z');
+      const expectedHour = baseDate.getHours();
+      await scheduler.checkRenewals(baseDate);
 
-      expect(subscriptionsService.findRenewalsInDays).toHaveBeenCalledWith(7, expect.any(Date));
-      expect(subscriptionsService.findRenewalsInDays).toHaveBeenCalledWith(3, expect.any(Date));
-      expect(subscriptionsService.findRenewalsInDays).toHaveBeenCalledWith(1, expect.any(Date));
-      expect(subscriptionsService.findDueRenewals).toHaveBeenCalled();
+      expect(subscriptionsService.findRenewalsInDays).toHaveBeenCalledWith(7, baseDate, expectedHour);
+      expect(subscriptionsService.findRenewalsInDays).toHaveBeenCalledWith(3, baseDate, expectedHour);
+      expect(subscriptionsService.findRenewalsInDays).toHaveBeenCalledWith(1, baseDate, expectedHour);
+      expect(subscriptionsService.findDueRenewals).toHaveBeenCalledWith(expectedHour);
     });
 
     it('should send preventive warning for 7-day renewal target', async () => {

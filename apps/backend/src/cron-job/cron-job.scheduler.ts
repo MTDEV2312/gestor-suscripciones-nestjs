@@ -12,19 +12,21 @@ export class RenewalScheduler {
     private readonly notificationsService: NotificationsService,
   ) {}
 
-  @Cron('0 20 * * *')
-  async checkRenewals() {
-    this.logger.log('Starting checkRenewals cron job...');
+  @Cron('0 * * * *')
+  async checkRenewals(baseDate: Date = new Date()) {
+    const currentHour = baseDate.getHours();
+    this.logger.log(`Starting checkRenewals cron job for hour ${currentHour}...`);
 
     // 1. Process 7d, 3d, 1d upcoming renewal notifications
-    await this.checkUpcomingRenewals(7);
-    await this.checkUpcomingRenewals(3);
-    await this.checkUpcomingRenewals(1);
+    await this.checkUpcomingRenewals(7, baseDate);
+    await this.checkUpcomingRenewals(3, baseDate);
+    await this.checkUpcomingRenewals(1, baseDate);
 
     // 2. Process due renewals (today or past due)
-    const dueRenewals = await this.subscriptionService.findDueRenewals();
+    const dueRenewals =
+      await this.subscriptionService.findDueRenewals(currentHour);
     this.logger.log(
-      `Found ${dueRenewals.length} subscriptions due for renewal.`,
+      `Found ${dueRenewals.length} subscriptions due for renewal at hour ${currentHour}.`,
     );
     if (dueRenewals.length === 0) {
       return;
@@ -84,9 +86,11 @@ export class RenewalScheduler {
   }
 
   async checkUpcomingRenewals(days: number, baseDate: Date = new Date()) {
+    const currentHour = baseDate.getHours();
     const upcomingSubs = await this.subscriptionService.findRenewalsInDays(
       days,
       baseDate,
+      currentHour,
     );
     if (!upcomingSubs || upcomingSubs.length === 0) {
       return;

@@ -59,6 +59,13 @@ export class User {
   })
   telegramUsername?: string;
 
+  @Column({
+    type: 'int',
+    default: 20,
+    comment: 'Hora del día (0-23) para enviar notificaciones de renovación',
+  })
+  notificationHour!: number;
+
   @OneToMany(() => Subscription, (subscription) => subscription.user)
   subscriptions!: Subscription[];
 

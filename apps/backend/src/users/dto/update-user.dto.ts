@@ -1,12 +1,15 @@
-import { Transform } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
   IsEmail,
+  IsInt,
   IsNotEmpty,
   IsOptional,
   IsString,
   Length,
   Matches,
+  Max,
   MaxLength,
+  Min,
 } from 'class-validator';
 import {
   toLowerCaseTransform,
@@ -39,4 +42,11 @@ export class UpdateUserDto {
   @IsNotEmpty()
   @Transform(trimTransform)
   telegramUsername?: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  @Max(23)
+  notificationHour?: number;
 }

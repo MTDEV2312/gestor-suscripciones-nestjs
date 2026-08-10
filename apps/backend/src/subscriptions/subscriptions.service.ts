@@ -149,31 +149,48 @@ export class SubscriptionsService {
     };
   }
 
-  async findDueRenewals(): Promise<Subscription[]> {
+  async findDueRenewals(currentHour?: number): Promise<Subscription[]> {
     const today = format(new Date(), 'yyyy-MM-dd');
-    return await this.subscriptionRepository
+    const queryBuilder = this.subscriptionRepository
       .createQueryBuilder('subscription')
       .leftJoinAndSelect('subscription.user', 'user')
       .where('subscription.is_active = :isActive', { isActive: true })
       .andWhere('SUBSTR(subscription.next_renewal_date, 1, 10) <= :today', {
         today,
-      })
-      .getMany();
+      });
+
+    if (currentHour !== undefined) {
+      queryBuilder.andWhere(
+        '(COALESCE(user.notificationHour, 20) = :currentHour)',
+        { currentHour },
+      );
+    }
+
+    return await queryBuilder.getMany();
   }
 
   async findRenewalsInDays(
     days: number,
     baseDate: Date = new Date(),
+    currentHour?: number,
   ): Promise<Subscription[]> {
     const targetDate = format(addDays(baseDate, days), 'yyyy-MM-dd');
-    return await this.subscriptionRepository
+    const queryBuilder = this.subscriptionRepository
       .createQueryBuilder('subscription')
       .leftJoinAndSelect('subscription.user', 'user')
       .where('subscription.is_active = :isActive', { isActive: true })
       .andWhere('SUBSTR(subscription.next_renewal_date, 1, 10) = :targetDate', {
         targetDate,
-      })
-      .getMany();
+      });
+
+    if (currentHour !== undefined) {
+      queryBuilder.andWhere(
+        '(COALESCE(user.notificationHour, 20) = :currentHour)',
+        { currentHour },
+      );
+    }
+
+    return await queryBuilder.getMany();
   }
 
   async processDueRenewals(subscription: Subscription) {

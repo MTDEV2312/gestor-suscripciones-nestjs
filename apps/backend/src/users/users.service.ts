@@ -30,6 +30,7 @@ export class UsersService {
     email: string;
     password: string;
     telegramUsername?: string;
+    notificationHour?: number;
   }) {
     const user = this.userRepository.create(data);
     return this.userRepository.save(user);
