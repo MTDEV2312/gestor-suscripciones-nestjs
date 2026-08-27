@@ -18,6 +18,7 @@ import { dataSourceOptions } from './database/data-source';
 
 import { CurrencyModule } from './currency/currency.module';
 import { TagsModule } from './tags/tags.module';
+import { PaymentsModule } from './payments/payments.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { TagsModule } from './tags/tags.module';
     DashboardModule,
     CurrencyModule,
     TagsModule,
+    PaymentsModule,
     CronJobModule,
     NotificationsModule,
   ],
@@ -45,4 +47,3 @@ import { TagsModule } from './tags/tags.module';
   providers: [AppService, PasswordService, NotificationsService],
 })
 export class AppModule {}
-
