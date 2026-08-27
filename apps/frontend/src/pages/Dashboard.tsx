@@ -7,6 +7,7 @@ import {
   SubscriptionHistory,
 } from '../services/api';
 import { SubscriptionCharts } from '../components/SubscriptionCharts';
+import { PaymentModal } from '../components/PaymentModal';
 import { formatDate, getLocalTodayString } from '../utils/date';
 import {
   Plus,
@@ -26,11 +27,13 @@ import {
   History as HistoryIcon,
   Globe,
   Filter,
+  BarChart3,
 } from 'lucide-react';
 
 interface DashboardProps {
   onLogout: () => void;
   onNavigateToProfile: () => void;
+  onNavigateToReports: () => void;
 }
 
 const AVAILABLE_CURRENCIES = [
@@ -48,6 +51,7 @@ const AVAILABLE_CURRENCIES = [
 export const Dashboard: React.FC<DashboardProps> = ({
   onLogout,
   onNavigateToProfile,
+  onNavigateToReports,
 }) => {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [dashboardInfo, setDashboardInfo] = useState<DashboardInfo | null>(null);
@@ -71,6 +75,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [formTagIds, setFormTagIds] = useState<string[]>([]);
   const [formLoading, setFormLoading] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+
+  // Quick Payment Modal state
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentSub, setPaymentSub] = useState<Subscription | null>(null);
 
   // New Tag inline creation inside modal
   const [newTagName, setNewTagName] = useState('');
@@ -235,6 +243,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
     }
   };
 
+  const handleQuickPay = (sub: Subscription) => {
+    setPaymentSub(sub);
+    setShowPaymentModal(true);
+  };
+
   const toggleTagSelection = (tagId: string) => {
     if (formTagIds.includes(tagId)) {
       setFormTagIds(formTagIds.filter((id) => id !== tagId));
@@ -264,7 +277,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
             GestorSuscripciones
           </span>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={onNavigateToReports}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 text-sm font-semibold transition"
+          >
+            <BarChart3 className="w-4 h-4" />
+            Reportes
+          </button>
           <button
             onClick={onNavigateToProfile}
             className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-gray-800 text-sm font-medium hover:bg-gray-800 transition"
@@ -510,6 +530,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         </button>
                       </td>
                       <td className="px-6 py-4 text-right space-x-2">
+                        <button
+                          onClick={() => handleQuickPay(sub)}
+                          title="Registrar Pago"
+                          className="p-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 rounded transition inline-flex"
+                        >
+                          <DollarSign className="w-4 h-4" />
+                        </button>
                         <button
                           onClick={() => handleOpenHistory(sub)}
                           title="Ver Historial"
@@ -814,6 +841,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </div>
         </div>
       )}
+
+      {/* Quick Payment Modal */}
+      <PaymentModal
+        isOpen={showPaymentModal}
+        onClose={() => setShowPaymentModal(false)}
+        onSuccess={() => loadData()}
+        initialSubscription={paymentSub}
+        subscriptions={subscriptions}
+      />
     </div>
   );
 };

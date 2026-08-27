@@ -4,11 +4,12 @@ import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 import { Dashboard } from './pages/Dashboard';
 import { Profile } from './pages/Profile';
+import { Reports } from './pages/Reports';
 import { Loader } from 'lucide-react';
 
 export const App: React.FC = () => {
   const [token, setToken] = useState<string | null>(getToken());
-  const [currentPage, setCurrentPage] = useState<'login' | 'register' | 'dashboard' | 'profile'>('login');
+  const [currentPage, setCurrentPage] = useState<'login' | 'register' | 'dashboard' | 'profile' | 'reports'>('login');
   const [loading, setLoading] = useState(true);
 
   const fetchUserInfo = async () => {
@@ -69,6 +70,7 @@ export const App: React.FC = () => {
         <Dashboard
           onLogout={handleLogout}
           onNavigateToProfile={() => setCurrentPage('profile')}
+          onNavigateToReports={() => setCurrentPage('reports')}
         />
       );
     case 'profile':
@@ -76,6 +78,14 @@ export const App: React.FC = () => {
         <Profile
           onBackToDashboard={() => setCurrentPage('dashboard')}
           onAccountDeleted={handleLogout}
+        />
+      );
+    case 'reports':
+      return (
+        <Reports
+          onBackToDashboard={() => setCurrentPage('dashboard')}
+          onNavigateToProfile={() => setCurrentPage('profile')}
+          onLogout={handleLogout}
         />
       );
     default:
