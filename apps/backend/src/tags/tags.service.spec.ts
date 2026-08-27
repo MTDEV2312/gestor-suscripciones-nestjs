@@ -150,7 +150,9 @@ describe('TagsService', () => {
   describe('update', () => {
     it('should update and save tag', async () => {
       tagRepository.findOne.mockResolvedValue({ ...mockTag });
-      tagRepository.save.mockImplementation((tag) => Promise.resolve(tag as Tag));
+      tagRepository.save.mockImplementation((tag) =>
+        Promise.resolve(tag as Tag),
+      );
 
       const result = await service.update(
         'tag-uuid-1',

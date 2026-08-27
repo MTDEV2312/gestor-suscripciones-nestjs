@@ -399,7 +399,11 @@ describe('SubscriptionsService', () => {
       const mockList = [mockSubscription];
       mockGetMany.mockResolvedValue(mockList);
 
-      const result = await service.findRenewalsInDays(7, new Date('2026-07-20T00:00:00Z'), 10);
+      const result = await service.findRenewalsInDays(
+        7,
+        new Date('2026-07-20T00:00:00Z'),
+        10,
+      );
 
       expect(mockAndWhere).toHaveBeenCalledWith(
         '(COALESCE(user.notificationHour, 20) = :currentHour)',

@@ -19,7 +19,8 @@ describe('NotificationsService', () => {
   describe('escapeHtml', () => {
     it('should escape HTML special characters', () => {
       const input = '<b>Netflix & "HBO"</b> <script>';
-      const expected = '&lt;b&gt;Netflix &amp; &quot;HBO&quot;&lt;/b&gt; &lt;script&gt;';
+      const expected =
+        '&lt;b&gt;Netflix &amp; &quot;HBO&quot;&lt;/b&gt; &lt;script&gt;';
       expect(service.escapeHtml(input)).toBe(expected);
     });
 

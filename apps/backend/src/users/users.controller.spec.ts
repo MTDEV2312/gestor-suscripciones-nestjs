@@ -81,7 +81,9 @@ describe('UsersController', () => {
         newPassword: 'NewPassword123!',
         repeatPassword: 'NewPassword123!',
       };
-      const expectedResult = { message: 'Contraseña actualizada correctamente' };
+      const expectedResult = {
+        message: 'Contraseña actualizada correctamente',
+      };
       mockUsersService.changePassword.mockResolvedValue(expectedResult);
 
       const result = await controller.changePassword(dto, mockRequest);

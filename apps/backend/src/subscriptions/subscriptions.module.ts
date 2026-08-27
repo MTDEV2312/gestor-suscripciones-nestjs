@@ -18,4 +18,3 @@ import { SubscriptionHistoryModule } from 'src/subscription-history/subscription
   exports: [SubscriptionsService],
 })
 export class SubscriptionsModule {}
-

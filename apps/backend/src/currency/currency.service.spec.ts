@@ -114,7 +114,7 @@ describe('CurrencyService', () => {
           rate: 0.92,
           updated_at: new Date(),
           last_fetched_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago (< 5 days)
-        } as ExchangeRateFallback,
+        },
       ]);
 
       global.fetch = jest.fn();
@@ -129,7 +129,11 @@ describe('CurrencyService', () => {
     it('should fall back to DB ExchangeRateFallback when API fails with 500', async () => {
       configService.get.mockReturnValue('secret-api-key-123');
 
-      global.fetch = jest.fn().mockRejectedValue(new Error('Network error 500 Internal Server Error'));
+      global.fetch = jest
+        .fn()
+        .mockRejectedValue(
+          new Error('Network error 500 Internal Server Error'),
+        );
 
       fallbackRepository.findOne.mockResolvedValue(mockFallback);
 
@@ -153,7 +157,7 @@ describe('CurrencyService', () => {
           target_currency: 'USD',
           rate: 1.25,
           updated_at: new Date(),
-        } as ExchangeRateFallback);
+        });
 
       const result = await service.convert(100, 'USD', 'EUR');
       expect(result).toBe(80); // 100 * (1 / 1.25) = 80
@@ -168,7 +172,9 @@ describe('CurrencyService', () => {
       const sensitiveKey = 'super-secret-api-key-xyz';
       configService.get.mockReturnValue(sensitiveKey);
 
-      global.fetch = jest.fn().mockRejectedValue(new Error('Connection failed'));
+      global.fetch = jest
+        .fn()
+        .mockRejectedValue(new Error('Connection failed'));
       fallbackRepository.findOne.mockResolvedValue(null);
 
       try {

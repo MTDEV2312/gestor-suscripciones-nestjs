@@ -15,7 +15,9 @@ export class RenewalScheduler {
   @Cron('0 * * * *')
   async checkRenewals(baseDate: Date = new Date()) {
     const currentHour = baseDate.getHours();
-    this.logger.log(`Starting checkRenewals cron job for hour ${currentHour}...`);
+    this.logger.log(
+      `Starting checkRenewals cron job for hour ${currentHour}...`,
+    );
 
     // 1. Process 7d, 3d, 1d upcoming renewal notifications
     await this.checkUpcomingRenewals(7, baseDate);
@@ -129,8 +131,8 @@ export class RenewalScheduler {
       days === 1
         ? '<b>🚨 Gestor de Suscripciones</b>\n━━━━━━━━━━━━━━━━━━━━━\n<b>¡Alerta de cobro inminente! (1 día restante):</b>'
         : days === 3
-        ? '<b>⚠️ Gestor de Suscripciones</b>\n━━━━━━━━━━━━━━━━━━━━━\n<b>Recordatorio preventivo (3 días restantes):</b>'
-        : '<b>📅 Gestor de Suscripciones</b>\n━━━━━━━━━━━━━━━━━━━━━\n<b>Recordatorio preventivo (7 días restantes):</b>';
+          ? '<b>⚠️ Gestor de Suscripciones</b>\n━━━━━━━━━━━━━━━━━━━━━\n<b>Recordatorio preventivo (3 días restantes):</b>'
+          : '<b>📅 Gestor de Suscripciones</b>\n━━━━━━━━━━━━━━━━━━━━━\n<b>Recordatorio preventivo (7 días restantes):</b>';
 
     const itemEmoji = days === 1 ? '🚨' : days === 3 ? '⚠️' : '📅';
 

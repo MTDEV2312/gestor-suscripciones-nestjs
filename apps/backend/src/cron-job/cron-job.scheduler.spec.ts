@@ -44,10 +44,24 @@ describe('RenewalScheduler', () => {
       const expectedHour = baseDate.getHours();
       await scheduler.checkRenewals(baseDate);
 
-      expect(subscriptionsService.findRenewalsInDays).toHaveBeenCalledWith(7, baseDate, expectedHour);
-      expect(subscriptionsService.findRenewalsInDays).toHaveBeenCalledWith(3, baseDate, expectedHour);
-      expect(subscriptionsService.findRenewalsInDays).toHaveBeenCalledWith(1, baseDate, expectedHour);
-      expect(subscriptionsService.findDueRenewals).toHaveBeenCalledWith(expectedHour);
+      expect(subscriptionsService.findRenewalsInDays).toHaveBeenCalledWith(
+        7,
+        baseDate,
+        expectedHour,
+      );
+      expect(subscriptionsService.findRenewalsInDays).toHaveBeenCalledWith(
+        3,
+        baseDate,
+        expectedHour,
+      );
+      expect(subscriptionsService.findRenewalsInDays).toHaveBeenCalledWith(
+        1,
+        baseDate,
+        expectedHour,
+      );
+      expect(subscriptionsService.findDueRenewals).toHaveBeenCalledWith(
+        expectedHour,
+      );
     });
 
     it('should send preventive warning for 7-day renewal target', async () => {
@@ -61,10 +75,12 @@ describe('RenewalScheduler', () => {
         user: { id: 'user-1', telegramUsername: 'testuser' },
       } as any;
 
-      subscriptionsService.findRenewalsInDays.mockImplementation((days: number) => {
-        if (days === 7) return Promise.resolve([mockSub7d]);
-        return Promise.resolve([]);
-      });
+      subscriptionsService.findRenewalsInDays.mockImplementation(
+        (days: number) => {
+          if (days === 7) return Promise.resolve([mockSub7d]);
+          return Promise.resolve([]);
+        },
+      );
 
       await scheduler.checkUpcomingRenewals(7);
 
@@ -73,7 +89,9 @@ describe('RenewalScheduler', () => {
         'testuser',
       );
       expect(notificationsService.sendNotification).toHaveBeenCalledWith(
-        expect.stringContaining('📅 <b>Netflix</b>\n💳 Costo: <code>15.99 USD</code>\n📅 Fecha: <i>2026-07-30</i>'),
+        expect.stringContaining(
+          '📅 <b>Netflix</b>\n💳 Costo: <code>15.99 USD</code>\n📅 Fecha: <i>2026-07-30</i>',
+        ),
         'testuser',
       );
     });
@@ -89,10 +107,12 @@ describe('RenewalScheduler', () => {
         user: { id: 'user-1', telegramUsername: 'testuser' },
       } as any;
 
-      subscriptionsService.findRenewalsInDays.mockImplementation((days: number) => {
-        if (days === 3) return Promise.resolve([mockSub3d]);
-        return Promise.resolve([]);
-      });
+      subscriptionsService.findRenewalsInDays.mockImplementation(
+        (days: number) => {
+          if (days === 3) return Promise.resolve([mockSub3d]);
+          return Promise.resolve([]);
+        },
+      );
 
       await scheduler.checkUpcomingRenewals(3);
 
@@ -117,15 +137,19 @@ describe('RenewalScheduler', () => {
         user: { id: 'user-1', telegramUsername: 'testuser' },
       } as any;
 
-      subscriptionsService.findRenewalsInDays.mockImplementation((days: number) => {
-        if (days === 1) return Promise.resolve([mockSub1d]);
-        return Promise.resolve([]);
-      });
+      subscriptionsService.findRenewalsInDays.mockImplementation(
+        (days: number) => {
+          if (days === 1) return Promise.resolve([mockSub1d]);
+          return Promise.resolve([]);
+        },
+      );
 
       await scheduler.checkUpcomingRenewals(1);
 
       expect(notificationsService.sendNotification).toHaveBeenCalledWith(
-        expect.stringContaining('¡Alerta de cobro inminente! (1 día restante):'),
+        expect.stringContaining(
+          '¡Alerta de cobro inminente! (1 día restante):',
+        ),
         'testuser',
       );
       expect(notificationsService.sendNotification).toHaveBeenCalledWith(

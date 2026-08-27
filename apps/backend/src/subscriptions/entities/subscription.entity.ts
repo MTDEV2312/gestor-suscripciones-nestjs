@@ -122,4 +122,3 @@ export class Subscription {
   })
   tags!: Tag[];
 }
-

@@ -25,7 +25,8 @@ export const dataSourceOptions: DataSourceOptions = isPostgres
       password: process.env.DB_PASSWORD || 'postgres',
       database: process.env.DB_DATABASE || 'postgres',
       synchronize: false,
-      logging: process.env.DB_LOGGING === 'true' ? ['query', 'error'] : ['error'],
+      logging:
+        process.env.DB_LOGGING === 'true' ? ['query', 'error'] : ['error'],
       entities: [entitiesPath],
       migrations: [migrationsPath],
     }
@@ -33,7 +34,8 @@ export const dataSourceOptions: DataSourceOptions = isPostgres
       type: 'better-sqlite3',
       database: process.env.DB_DATABASE || 'database.sqlite',
       synchronize: false,
-      logging: process.env.DB_LOGGING === 'true' ? ['query', 'error'] : ['error'],
+      logging:
+        process.env.DB_LOGGING === 'true' ? ['query', 'error'] : ['error'],
       entities: [entitiesPath],
       migrations: [migrationsPath],
     };

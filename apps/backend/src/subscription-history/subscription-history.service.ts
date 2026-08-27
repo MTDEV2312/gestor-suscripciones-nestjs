@@ -24,8 +24,7 @@ export class SubscriptionHistoryService {
   async recordChange(dto: RecordHistoryDto): Promise<SubscriptionHistory> {
     const history = this.historyRepository.create({
       ...dto,
-      effective_date:
-        dto.effective_date || format(new Date(), 'yyyy-MM-dd'),
+      effective_date: dto.effective_date || format(new Date(), 'yyyy-MM-dd'),
     });
     return await this.historyRepository.save(history);
   }

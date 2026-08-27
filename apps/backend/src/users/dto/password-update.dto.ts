@@ -11,7 +11,9 @@ export class PasswordUpdateDto {
   @Transform(trimTransform)
   @IsString()
   @IsNotEmpty({ message: 'La nueva contraseña es requerida' })
-  @Length(8, 16, { message: 'La contraseña debe tener entre 8 y 16 caracteres' })
+  @Length(8, 16, {
+    message: 'La contraseña debe tener entre 8 y 16 caracteres',
+  })
   @Matches(
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&._-])[A-Za-z\d@$!%*?&._-]+$/,
     {

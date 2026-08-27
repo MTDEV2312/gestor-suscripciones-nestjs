@@ -40,7 +40,7 @@ export class SubscriptionsService {
       });
     }
 
-    const { tagIds, ...dtoData } = createSubscriptionDto;
+    const { tagIds: _tagIds, ...dtoData } = createSubscriptionDto;
     const subscription = this.subscriptionRepository.create({
       ...dtoData,
       user_id: req.user.id,
@@ -251,4 +251,3 @@ export class SubscriptionsService {
     return nextDate.toISOString().split('T')[0];
   }
 }
-

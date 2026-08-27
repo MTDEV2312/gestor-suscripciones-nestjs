@@ -20,7 +20,9 @@ export class AddTagsAndSubscriptionTags1784838482194 implements MigrationInterfa
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`DROP INDEX "IDX_subscription_tags_tag_id"`);
-    await queryRunner.query(`DROP INDEX "IDX_subscription_tags_subscription_id"`);
+    await queryRunner.query(
+      `DROP INDEX "IDX_subscription_tags_subscription_id"`,
+    );
     await queryRunner.query(`DROP TABLE "subscription_tags"`);
     await queryRunner.query(`DROP TABLE "tag"`);
   }

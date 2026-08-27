@@ -42,7 +42,7 @@ describe('CurrencyController', () => {
           updated_at: new Date(),
         },
       ];
-      service.getFallbackRates.mockResolvedValue(mockRates as any);
+      service.getFallbackRates.mockResolvedValue(mockRates);
 
       const result = await controller.getFallbackRates();
       expect(result).toEqual(mockRates);
@@ -58,7 +58,7 @@ describe('CurrencyController', () => {
         rate: 0.9,
       };
       const mockUpdated = { id: '1', ...dto, updated_at: new Date() };
-      service.setFallbackRate.mockResolvedValue(mockUpdated as any);
+      service.setFallbackRate.mockResolvedValue(mockUpdated);
 
       const result = await controller.setFallbackRatePost(dto);
       expect(result).toEqual(mockUpdated);

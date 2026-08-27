@@ -22,10 +22,16 @@ export class CurrencyService {
     private readonly configService: ConfigService,
   ) {}
 
-  private async fetchExternalRates(base: string = 'USD'): Promise<Record<string, number>> {
+  private async fetchExternalRates(
+    base: string = 'USD',
+  ): Promise<Record<string, number>> {
     const now = Date.now();
     // 1. Memory cache check
-    if (this.rateCache && this.rateCache.base === base && this.rateCache.expiresAt > now) {
+    if (
+      this.rateCache &&
+      this.rateCache.base === base &&
+      this.rateCache.expiresAt > now
+    ) {
       return this.rateCache.rates;
     }
 
@@ -41,7 +47,10 @@ export class CurrencyService {
         return now - fetchedAt < this.cacheTtlMs;
       });
 
-      if (validStoredRates.length === storedRates.length && validStoredRates.length > 0) {
+      if (
+        validStoredRates.length === storedRates.length &&
+        validStoredRates.length > 0
+      ) {
         const ratesMap: Record<string, number> = { [base]: 1 };
         let oldestFetchedAt = now;
 
@@ -111,12 +120,17 @@ export class CurrencyService {
 
       return rates;
     } catch (err: any) {
-      this.logger.warn(`Failed to fetch exchange rates from external API: ${err.message}`);
+      this.logger.warn(
+        `Failed to fetch exchange rates from external API: ${err.message}`,
+      );
       throw new Error('External exchange rate API unavailable');
     }
   }
 
-  private async getFallbackRate(fromCurrency: string, toCurrency: string): Promise<number | null> {
+  private async getFallbackRate(
+    fromCurrency: string,
+    toCurrency: string,
+  ): Promise<number | null> {
     const direct = await this.fallbackRepo.findOne({
       where: {
         base_currency: fromCurrency.toUpperCase(),
@@ -142,7 +156,11 @@ export class CurrencyService {
     return null;
   }
 
-  async convert(amount: number, fromCurrency: string, toCurrency: string): Promise<number> {
+  async convert(
+    amount: number,
+    fromCurrency: string,
+    toCurrency: string,
+  ): Promise<number> {
     const from = fromCurrency.toUpperCase();
     const to = toCurrency.toUpperCase();
 
@@ -181,7 +199,7 @@ export class CurrencyService {
     const base = baseCurrency.toUpperCase();
     const target = targetCurrency.toUpperCase();
 
-    let existing = await this.fallbackRepo.findOne({
+    const existing = await this.fallbackRepo.findOne({
       where: { base_currency: base, target_currency: target },
     });
 

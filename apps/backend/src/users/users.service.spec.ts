@@ -247,7 +247,9 @@ describe('UsersService', () => {
           password: 'newhashedpassword',
         }),
       );
-      expect(result).toEqual({ message: 'Contraseña actualizada correctamente' });
+      expect(result).toEqual({
+        message: 'Contraseña actualizada correctamente',
+      });
     });
   });
 

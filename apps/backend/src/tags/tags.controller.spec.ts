@@ -83,7 +83,9 @@ describe('TagsController', () => {
   });
 
   it('should call service.remove', async () => {
-    service.remove.mockResolvedValue({ message: 'Etiqueta eliminada exitosamente' });
+    service.remove.mockResolvedValue({
+      message: 'Etiqueta eliminada exitosamente',
+    });
     const result = await controller.remove('tag-1', req);
     expect(service.remove).toHaveBeenCalledWith('tag-1', req);
     expect(result).toEqual({ message: 'Etiqueta eliminada exitosamente' });
