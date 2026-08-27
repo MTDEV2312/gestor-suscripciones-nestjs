@@ -46,6 +46,8 @@ coverage
 # databases
 *.db
 *.sqlite
+*.sqlite*
+*.bak
 
 # temp directory
 .temp
