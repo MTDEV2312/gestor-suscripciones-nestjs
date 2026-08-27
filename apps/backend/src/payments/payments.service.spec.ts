@@ -397,14 +397,19 @@ describe('PaymentsService', () => {
   });
 
   describe('exportPdf', () => {
-    it('should generate a valid PDF buffer with multi-subscription breakdown', async () => {
+    it('should generate a valid PDF buffer with multi-subscription breakdown and all transaction columns', async () => {
+      const paymentWithNotes = {
+        ...mockPayment,
+        notes: 'Pago mensual de Netflix con tarjeta',
+      };
+
       const qb: any = {
         leftJoinAndSelect: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
         andWhere: jest.fn().mockReturnThis(),
         orderBy: jest.fn().mockReturnThis(),
         addOrderBy: jest.fn().mockReturnThis(),
-        getMany: jest.fn().mockResolvedValue([mockPayment]),
+        getMany: jest.fn().mockResolvedValue([paymentWithNotes]),
       };
       paymentRepo.createQueryBuilder.mockReturnValue(qb);
       currencyService.convert.mockResolvedValue(15.99);
@@ -423,7 +428,13 @@ describe('PaymentsService', () => {
       expect(pdfString).toContain('%%EOF');
       expect(pdfString).toContain('GESTOR DE SUSCRIPCIONES');
       expect(pdfString).toContain('RESUMEN POR SUSCRIPCION');
+      expect(pdfString).toContain('DETALLE DE TRANSACCIONES Y PAGOS');
       expect(pdfString).toContain('Netflix');
+      expect(pdfString).toContain('2026-08');
+      expect(pdfString).toContain('Tarjeta');
+      expect(pdfString).toContain('15.99');
+      expect(pdfString).toContain('PAGADO');
+      expect(pdfString).toContain('Pago mensual de Netflix');
     });
 
     it('should generate PDF buffer with subscription profile when filtering by specific subscription', async () => {

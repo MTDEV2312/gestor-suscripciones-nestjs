@@ -423,6 +423,20 @@ export class PaymentsService {
         .replace(/[\u0300-\u036f]/g, ''); // normalize accents for standard PDF font compatibility
     };
 
+    // Helper to position text at absolute (x, y) coordinates using PDF transformation matrix (1 0 0 1 x y Tm)
+    const textAt = (
+      x: number,
+      y: number,
+      font: 'F1' | 'F2',
+      size: number,
+      rgb: string,
+      text: any,
+    ): string => {
+      if (text === null || text === undefined || text === '') return '';
+      const escaped = escapePdf(text);
+      return `BT ${rgb} /${font} ${size} Tf 1 0 0 1 ${x} ${y} Tm (${escaped}) Tj ET\n`;
+    };
+
     // We collect pages. Each page has a stream of PDF drawing commands.
     const pagesContent: string[] = [];
     let currentStream = '';
@@ -440,97 +454,46 @@ export class PaymentsService {
       0.31 0.27 0.90 rg
       ${margin} 796 ${contentWidth} 6 re f
       0 0 0 rg
-      BT
-      /F2 18 Tf
-      0.18 0.22 0.35 rg
-      ${margin} 770 Td
-      (${escapePdf('GESTOR DE SUSCRIPCIONES')}) Tj
-      ET
-      BT
-      /F1 10 Tf
-      0.45 0.50 0.60 rg
-      ${margin} 754 Td
-      (${escapePdf('Reporte Ejecutivo de Gastos y Pagos')}) Tj
-      ET
+      ${textAt(margin, 770, 'F2', 18, '0.18 0.22 0.35 rg', 'GESTOR DE SUSCRIPCIONES')}
+      ${textAt(margin, 754, 'F1', 10, '0.45 0.50 0.60 rg', 'Reporte Ejecutivo de Gastos y Pagos')}
 
       % --- Metadata Block (Right aligned box) ---
       0.96 0.97 0.99 rg
       340 740 175 48 re f
       0.85 0.88 0.93 RG
       340 740 175 48 re S
-      BT
-      /F1 8 Tf
-      0.40 0.45 0.55 rg
-      348 774 Td
-      (${escapePdf(`Usuario: ${user.username || user.email}`)}) Tj
-      0 -11 Td
-      (${escapePdf(`Emision: ${new Date().toISOString().split('T')[0]}`)}) Tj
-      0 -11 Td
-      (${escapePdf(`Periodo: ${queryDto.startMonth || queryDto.startDate || 'Inicio'} a ${queryDto.endMonth || queryDto.endDate || 'Actual'}`)}) Tj
-      0 -11 Td
-      (${escapePdf(`Moneda Destino: ${targetCurrency}`)}) Tj
-      ET
+      ${textAt(348, 774, 'F1', 8, '0.40 0.45 0.55 rg', `Usuario: ${user.username || user.email}`)}
+      ${textAt(348, 763, 'F1', 8, '0.40 0.45 0.55 rg', `Emision: ${new Date().toISOString().split('T')[0]}`)}
+      ${textAt(348, 752, 'F1', 8, '0.40 0.45 0.55 rg', `Periodo: ${queryDto.startMonth || queryDto.startDate || 'Inicio'} a ${queryDto.endMonth || queryDto.endDate || 'Actual'}`)}
+      ${textAt(348, 741, 'F1', 8, '0.40 0.45 0.55 rg', `Moneda Destino: ${targetCurrency}`)}
 
-      % --- KPI Metric Cards (Y: 670 to 725) ---
+      % --- KPI Metric Cards (Y: 668 to 723) ---
       % Card 1: Total Gastado
       0.93 0.95 0.99 rg
       ${margin} 668 160 55 re f
       0.78 0.82 0.99 RG
       ${margin} 668 160 55 re S
-      BT
-      /F2 8 Tf
-      0.31 0.27 0.90 rg
-      ${margin + 12} 708 Td
-      (${escapePdf('TOTAL GASTADO')}) Tj
-      /F2 14 Tf
-      0.12 0.15 0.30 rg
-      0 -18 Td
-      (${escapePdf(`$${report.total_spent.toFixed(2)} ${targetCurrency}`)}) Tj
-      /F1 7.5 Tf
-      0.45 0.50 0.60 rg
-      0 -12 Td
-      (${escapePdf(`${report.paid_count} pagos completados`)}) Tj
-      ET
+      ${textAt(margin + 12, 708, 'F2', 8, '0.31 0.27 0.90 rg', 'TOTAL GASTADO')}
+      ${textAt(margin + 12, 690, 'F2', 14, '0.12 0.15 0.30 rg', `$${report.total_spent.toFixed(2)} ${targetCurrency}`)}
+      ${textAt(margin + 12, 678, 'F1', 7.5, '0.45 0.50 0.60 rg', `${report.paid_count} pagos completados`)}
 
       % Card 2: Pagos Realizados
       0.97 0.98 0.99 rg
       ${margin + 175} 668 160 55 re f
       0.88 0.90 0.94 RG
       ${margin + 175} 668 160 55 re S
-      BT
-      /F2 8 Tf
-      0.35 0.40 0.50 rg
-      ${margin + 187} 708 Td
-      (${escapePdf('PAGOS REALIZADOS')}) Tj
-      /F2 14 Tf
-      0.12 0.15 0.30 rg
-      0 -18 Td
-      (${escapePdf(`${report.paid_count} Transacciones`)}) Tj
-      /F1 7.5 Tf
-      0.45 0.50 0.60 rg
-      0 -12 Td
-      (${escapePdf(`En el periodo seleccionado`)}) Tj
-      ET
+      ${textAt(margin + 187, 708, 'F2', 8, '0.35 0.40 0.50 rg', 'PAGOS REALIZADOS')}
+      ${textAt(margin + 187, 690, 'F2', 14, '0.12 0.15 0.30 rg', `${report.paid_count} Transacciones`)}
+      ${textAt(margin + 187, 678, 'F1', 7.5, '0.45 0.50 0.60 rg', 'En el periodo seleccionado')}
 
       % Card 3: Suscripciones
       0.97 0.98 0.99 rg
       ${margin + 350} 668 165 55 re f
       0.88 0.90 0.94 RG
       ${margin + 350} 668 165 55 re S
-      BT
-      /F2 8 Tf
-      0.35 0.40 0.50 rg
-      ${margin + 362} 708 Td
-      (${escapePdf('SUSCRIPCIONES')}) Tj
-      /F2 14 Tf
-      0.12 0.15 0.30 rg
-      0 -18 Td
-      (${escapePdf(`${report.subscriptions_count} Distintas`)}) Tj
-      /F1 7.5 Tf
-      0.45 0.50 0.60 rg
-      0 -12 Td
-      (${escapePdf(`Cobradas en el periodo`)}) Tj
-      ET
+      ${textAt(margin + 362, 708, 'F2', 8, '0.35 0.40 0.50 rg', 'SUSCRIPCIONES')}
+      ${textAt(margin + 362, 690, 'F2', 14, '0.12 0.15 0.30 rg', `${report.subscriptions_count} Distintas`)}
+      ${textAt(margin + 362, 678, 'F1', 7.5, '0.45 0.50 0.60 rg', 'Cobradas en el periodo')}
     `;
 
     let currentY = 645;
@@ -604,47 +567,21 @@ export class PaymentsService {
         ${statusPillBg}
         ${margin + contentWidth - 65} ${currentY - 18} 55 12 re f
 
-        BT
-        /F2 9.5 Tf
-        0.18 0.22 0.35 rg
-        ${margin + 12} ${currentY - 14} Td
-        (${escapePdf(`INFORMACION DE LA SUSCRIPCION: ${activeSub.name.toUpperCase()}`)}) Tj
-        ${statusPillText}
-        /F2 7 Tf
-        ${margin + contentWidth - 55} ${currentY - 12} Td
-        (${escapePdf(statusText.toUpperCase())}) Tj
-        ET
+        ${textAt(margin + 12, currentY - 14, 'F2', 9.5, '0.18 0.22 0.35 rg', `INFORMACION DE LA SUSCRIPCION: ${activeSub.name.toUpperCase()}`)}
+        ${textAt(margin + contentWidth - 55, currentY - 14, 'F2', 7, statusPillText, statusText.toUpperCase())}
 
-        BT
-        /F1 8 Tf
-        0.30 0.35 0.45 rg
-        ${margin + 12} ${currentY - 30} Td
-        (${escapePdf(`Tipo: ${activeSub.type}`)}) Tj
-        ${margin + 120} ${currentY - 30} Td
-        (${escapePdf(`Frecuencia: ${freqLabel}`)}) Tj
-        ${margin + 230} ${currentY - 30} Td
-        (${escapePdf(`Precio Base: $${activeSub.price !== undefined ? activeSub.price.toFixed(2) : activeSub.total_original.toFixed(2)} ${activeSub.currency}`)}) Tj
-        ${margin + 360} ${currentY - 30} Td
-        (${escapePdf(`Proxima Renovacion: ${activeSub.next_renewal_date || 'N/A'}`)}) Tj
-        ET
+        ${textAt(margin + 12, currentY - 30, 'F1', 8, '0.30 0.35 0.45 rg', `Tipo: ${activeSub.type}`)}
+        ${textAt(margin + 120, currentY - 30, 'F1', 8, '0.30 0.35 0.45 rg', `Frecuencia: ${freqLabel}`)}
+        ${textAt(margin + 230, currentY - 30, 'F1', 8, '0.30 0.35 0.45 rg', `Precio Base: $${activeSub.price !== undefined ? activeSub.price.toFixed(2) : activeSub.total_original.toFixed(2)} ${activeSub.currency}`)}
+        ${textAt(margin + 360, currentY - 30, 'F1', 8, '0.30 0.35 0.45 rg', `Proxima Renovacion: ${activeSub.next_renewal_date || 'N/A'}`)}
 
-        BT
-        /F2 8 Tf
-        0.31 0.27 0.90 rg
-        ${margin + 12} ${currentY - 44} Td
-        (${escapePdf(`Gasto Acumulado en Periodo: $${activeSub.total_converted.toFixed(2)} ${targetCurrency} (${activeSub.count} pagos registrados)`)}) Tj
-        ET
+        ${textAt(margin + 12, currentY - 44, 'F2', 8, '0.31 0.27 0.90 rg', `Gasto Acumulado en Periodo: $${activeSub.total_converted.toFixed(2)} ${targetCurrency} (${activeSub.count} pagos registrados)`)}
       `;
       currentY -= 64;
     } else if (subscriptionList.length > 0) {
       // Multi-subscription summary table
       currentStream += `
-        BT
-        /F2 10 Tf
-        0.18 0.22 0.35 rg
-        ${margin} ${currentY} Td
-        (${escapePdf('RESUMEN POR SUSCRIPCION')}) Tj
-        ET
+        ${textAt(margin, currentY, 'F2', 10, '0.18 0.22 0.35 rg', 'RESUMEN POR SUSCRIPCION')}
       `;
       currentY -= 16;
 
@@ -654,15 +591,11 @@ export class PaymentsService {
         ${margin} ${currentY - 4} ${contentWidth} 16 re f
         0.85 0.88 0.93 RG
         ${margin} ${currentY - 4} ${contentWidth} 16 re S
-        BT
-        /F2 8 Tf
-        0.30 0.35 0.45 rg
-        ${margin + 8} ${currentY} Td (${escapePdf('Suscripcion')}) Tj
-        ${margin + 175} ${currentY} Td (${escapePdf('Tipo / Frecuencia')}) Tj
-        ${margin + 285} ${currentY} Td (${escapePdf('Pagos')}) Tj
-        ${margin + 355} ${currentY} Td (${escapePdf(`Total (${targetCurrency})`)}) Tj
-        ${margin + 445} ${currentY} Td (${escapePdf('% del Gasto')}) Tj
-        ET
+        ${textAt(margin + 8, currentY, 'F2', 8, '0.30 0.35 0.45 rg', 'Suscripcion')}
+        ${textAt(margin + 175, currentY, 'F2', 8, '0.30 0.35 0.45 rg', 'Tipo / Frecuencia')}
+        ${textAt(margin + 285, currentY, 'F2', 8, '0.30 0.35 0.45 rg', 'Pagos')}
+        ${textAt(margin + 355, currentY, 'F2', 8, '0.30 0.35 0.45 rg', `Total (${targetCurrency})`)}
+        ${textAt(margin + 445, currentY, 'F2', 8, '0.30 0.35 0.45 rg', '% del Gasto')}
       `;
       currentY -= 16;
 
@@ -680,17 +613,11 @@ export class PaymentsService {
         currentStream += `
           0.98 0.98 0.99 rg
           ${margin} ${currentY - 3} ${contentWidth} 14 re f
-          BT
-          /F1 8 Tf
-          0.20 0.25 0.35 rg
-          ${margin + 8} ${currentY} Td (${escapePdf(s.name.substring(0, 24))}) Tj
-          ${margin + 175} ${currentY} Td (${escapePdf(`${s.type} (${freq})`)}) Tj
-          ${margin + 285} ${currentY} Td (${escapePdf(`${s.count}`)}) Tj
-          /F2 8 Tf
-          ${margin + 355} ${currentY} Td (${escapePdf(`$${s.total_converted.toFixed(2)}`)}) Tj
-          /F1 8 Tf
-          ${margin + 445} ${currentY} Td (${escapePdf(`${percent}%`)}) Tj
-          ET
+          ${textAt(margin + 8, currentY, 'F1', 8, '0.20 0.25 0.35 rg', s.name.substring(0, 24))}
+          ${textAt(margin + 175, currentY, 'F1', 8, '0.20 0.25 0.35 rg', `${s.type} (${freq})`)}
+          ${textAt(margin + 285, currentY, 'F1', 8, '0.20 0.25 0.35 rg', `${s.count}`)}
+          ${textAt(margin + 355, currentY, 'F2', 8, '0.12 0.15 0.30 rg', `$${s.total_converted.toFixed(2)}`)}
+          ${textAt(margin + 445, currentY, 'F1', 8, '0.20 0.25 0.35 rg', `${percent}%`)}
         `;
         currentY -= 15;
       }
@@ -705,13 +632,7 @@ export class PaymentsService {
       }
 
       currentStream += `
-        % Monthly section title
-        BT
-        /F2 10 Tf
-        0.18 0.22 0.35 rg
-        ${margin} ${currentY} Td
-        (${escapePdf('RESUMEN MENSUAL')}) Tj
-        ET
+        ${textAt(margin, currentY, 'F2', 10, '0.18 0.22 0.35 rg', 'RESUMEN MENSUAL')}
       `;
       currentY -= 16;
 
@@ -721,13 +642,9 @@ export class PaymentsService {
         ${margin} ${currentY - 4} ${contentWidth} 16 re f
         0.85 0.88 0.93 RG
         ${margin} ${currentY - 4} ${contentWidth} 16 re S
-        BT
-        /F2 8 Tf
-        0.30 0.35 0.45 rg
-        ${margin + 8} ${currentY} Td (${escapePdf('Mes / Periodo')}) Tj
-        ${margin + 200} ${currentY} Td (${escapePdf('Suscripciones Pagadas')}) Tj
-        ${margin + 400} ${currentY} Td (${escapePdf(`Total (${targetCurrency})`)}) Tj
-        ET
+        ${textAt(margin + 8, currentY, 'F2', 8, '0.30 0.35 0.45 rg', 'Mes / Periodo')}
+        ${textAt(margin + 200, currentY, 'F2', 8, '0.30 0.35 0.45 rg', 'Suscripciones Pagadas')}
+        ${textAt(margin + 400, currentY, 'F2', 8, '0.30 0.35 0.45 rg', `Total (${targetCurrency})`)}
       `;
       currentY -= 16;
 
@@ -740,14 +657,9 @@ export class PaymentsService {
         currentStream += `
           0.98 0.98 0.99 rg
           ${margin} ${currentY - 3} ${contentWidth} 14 re f
-          BT
-          /F1 8 Tf
-          0.20 0.25 0.35 rg
-          ${margin + 8} ${currentY} Td (${escapePdf(m.period)}) Tj
-          ${margin + 200} ${currentY} Td (${escapePdf(`${m.transaction_count} pagos`)}) Tj
-          /F2 8 Tf
-          ${margin + 400} ${currentY} Td (${escapePdf(`$${m.total_amount.toFixed(2)}`)}) Tj
-          ET
+          ${textAt(margin + 8, currentY, 'F1', 8, '0.20 0.25 0.35 rg', m.period)}
+          ${textAt(margin + 200, currentY, 'F1', 8, '0.20 0.25 0.35 rg', `${m.transaction_count} pagos`)}
+          ${textAt(margin + 400, currentY, 'F2', 8, '0.12 0.15 0.30 rg', `$${m.total_amount.toFixed(2)}`)}
         `;
         currentY -= 15;
       }
@@ -761,12 +673,7 @@ export class PaymentsService {
     }
 
     currentStream += `
-      BT
-      /F2 10 Tf
-      0.18 0.22 0.35 rg
-      ${margin} ${currentY} Td
-      (${escapePdf('DETALLE DE TRANSACCIONES Y PAGOS')}) Tj
-      ET
+      ${textAt(margin, currentY, 'F2', 10, '0.18 0.22 0.35 rg', 'DETALLE DE TRANSACCIONES Y PAGOS')}
     `;
     currentY -= 16;
 
@@ -777,17 +684,13 @@ export class PaymentsService {
         ${margin} ${currentY - 4} ${contentWidth} 16 re f
         0.85 0.88 0.93 RG
         ${margin} ${currentY - 4} ${contentWidth} 16 re S
-        BT
-        /F2 7.5 Tf
-        0.30 0.35 0.45 rg
-        ${margin + 6} ${currentY} Td (${escapePdf('Fecha')}) Tj
-        ${margin + 65} ${currentY} Td (${escapePdf('Suscripcion')}) Tj
-        ${margin + 165} ${currentY} Td (${escapePdf('Periodo')}) Tj
-        ${margin + 225} ${currentY} Td (${escapePdf('Metodo')}) Tj
-        ${margin + 295} ${currentY} Td (${escapePdf('Monto Orig.')}) Tj
-        ${margin + 375} ${currentY} Td (${escapePdf(`Monto (${targetCurrency})`)}) Tj
-        ${margin + 455} ${currentY} Td (${escapePdf('Estado')}) Tj
-        ET
+        ${textAt(margin + 6, currentY, 'F2', 7.5, '0.30 0.35 0.45 rg', 'Fecha')}
+        ${textAt(margin + 65, currentY, 'F2', 7.5, '0.30 0.35 0.45 rg', 'Suscripcion')}
+        ${textAt(margin + 172, currentY, 'F2', 7.5, '0.30 0.35 0.45 rg', 'Periodo')}
+        ${textAt(margin + 225, currentY, 'F2', 7.5, '0.30 0.35 0.45 rg', 'Metodo')}
+        ${textAt(margin + 300, currentY, 'F2', 7.5, '0.30 0.35 0.45 rg', 'Monto Orig.')}
+        ${textAt(margin + 380, currentY, 'F2', 7.5, '0.30 0.35 0.45 rg', `Monto (${targetCurrency})`)}
+        ${textAt(margin + 455, currentY, 'F2', 7.5, '0.30 0.35 0.45 rg', 'Estado')}
       `;
       currentY -= 16;
     };
@@ -796,30 +699,22 @@ export class PaymentsService {
 
     if (paymentsWithConversion.length === 0) {
       currentStream += `
-        BT
-        /F1 9 Tf
-        0.50 0.55 0.65 rg
-        ${margin + 120} ${currentY - 15} Td
-        (${escapePdf('No se encontraron pagos registrados en el periodo seleccionado.')}) Tj
-        ET
+        ${textAt(margin + 120, currentY - 15, 'F1', 9, '0.50 0.55 0.65 rg', 'No se encontraron pagos registrados en el periodo seleccionado.')}
       `;
       currentY -= 30;
     }
 
     for (let i = 0; i < paymentsWithConversion.length; i++) {
       const p = paymentsWithConversion[i];
+      const hasNotes = !!p.notes;
+      const rowHeight = hasNotes ? 24 : 14;
 
       // If approaching bottom margin, start a new page
-      if (currentY < 60) {
+      if (currentY < (hasNotes ? 75 : 60)) {
         startNewPage();
         currentY = 780;
         currentStream += `
-          BT
-          /F2 10 Tf
-          0.30 0.35 0.45 rg
-          ${margin} ${currentY} Td
-          (${escapePdf('DETALLE DE TRANSACCIONES (Continuacion)')}) Tj
-          ET
+          ${textAt(margin, currentY, 'F2', 10, '0.30 0.35 0.45 rg', 'DETALLE DE TRANSACCIONES (Continuacion)')}
         `;
         currentY -= 16;
         renderDetailTableHeader();
@@ -829,7 +724,7 @@ export class PaymentsService {
       if (isEven) {
         currentStream += `
           0.98 0.98 0.99 rg
-          ${margin} ${currentY - 3} ${contentWidth} 14 re f
+          ${margin} ${currentY - (rowHeight - 11)} ${contentWidth} ${rowHeight} re f
         `;
       }
 
@@ -851,22 +746,24 @@ export class PaymentsService {
         % Status pill background
         ${pillBg}
         ${margin + 450} ${currentY - 2} 55 11 re f
-        BT
-        /F1 7.5 Tf
-        0.20 0.25 0.35 rg
-        ${margin + 6} ${currentY} Td (${escapePdf(p.payment_date)}) Tj
-        ${margin + 65} ${currentY} Td (${escapePdf(p.subscription_name.substring(0, 18))}) Tj
-        ${margin + 165} ${currentY} Td (${escapePdf(p.billing_period)}) Tj
-        ${margin + 225} ${currentY} Td (${escapePdf((p.payment_method || 'N/A').substring(0, 12))}) Tj
-        ${margin + 295} ${currentY} Td (${escapePdf(`$${p.amountNum.toFixed(2)} ${p.currency}`)}) Tj
-        /F2 7.5 Tf
-        ${margin + 375} ${currentY} Td (${escapePdf(`$${p.converted.toFixed(2)}`)}) Tj
-        ${pillText}
-        /F2 6.5 Tf
-        ${margin + 456} ${currentY + 1} Td (${escapePdf(statusLabel)}) Tj
-        ET
+
+        ${textAt(margin + 6, currentY, 'F1', 7.5, '0.20 0.25 0.35 rg', p.payment_date)}
+        ${textAt(margin + 65, currentY, 'F1', 7.5, '0.20 0.25 0.35 rg', p.subscription_name.substring(0, 20))}
+        ${textAt(margin + 172, currentY, 'F1', 7.5, '0.20 0.25 0.35 rg', p.billing_period)}
+        ${textAt(margin + 225, currentY, 'F1', 7.5, '0.20 0.25 0.35 rg', (p.payment_method || 'N/A').substring(0, 14))}
+        ${textAt(margin + 300, currentY, 'F1', 7.5, '0.20 0.25 0.35 rg', `$${p.amountNum.toFixed(2)} ${p.currency}`)}
+        ${textAt(margin + 380, currentY, 'F2', 7.5, '0.12 0.15 0.30 rg', `$${p.converted.toFixed(2)}`)}
+        ${textAt(margin + 456, currentY + 1, 'F2', 6.5, pillText, statusLabel)}
       `;
-      currentY -= 14;
+
+      if (hasNotes && p.notes) {
+        currentStream += `
+          ${textAt(margin + 65, currentY - 10, 'F1', 6.5, '0.45 0.50 0.60 rg', `Nota: ${p.notes.substring(0, 65)}`)}
+        `;
+        currentY -= 24;
+      } else {
+        currentY -= 14;
+      }
     }
 
     startNewPage();
@@ -880,14 +777,8 @@ export class PaymentsService {
         % --- Footer Rule & Page Number ---
         0.88 0.90 0.94 RG
         ${margin} 38 ${contentWidth} 0.5 re S
-        BT
-        /F1 7.5 Tf
-        0.50 0.55 0.65 rg
-        ${margin} 26 Td
-        (${escapePdf('Gestor de Suscripciones - Reporte Financiero de Pagos')}) Tj
-        ${margin + 430} 26 Td
-        (${escapePdf(`Pagina ${pageNum} de ${totalPages}`)}) Tj
-        ET
+        ${textAt(margin, 26, 'F1', 7.5, '0.50 0.55 0.65 rg', 'Gestor de Suscripciones - Reporte Financiero de Pagos')}
+        ${textAt(margin + 430, 26, 'F1', 7.5, '0.50 0.55 0.65 rg', `Pagina ${pageNum} de ${totalPages}`)}
       `;
     });
 
