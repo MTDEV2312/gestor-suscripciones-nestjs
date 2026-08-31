@@ -7,4 +7,5 @@ allowBuilds:
   unrs-resolver: true
   esbuild: true
 overrides:
+  raw-body@3: 4.0.0
   webpack@<=5.107.2: 5.107.2
