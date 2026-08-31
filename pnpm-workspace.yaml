@@ -8,3 +8,4 @@ allowBuilds:
   esbuild: true
 overrides:
   webpack@<=5.107.2: 5.107.2
+  yargs@17: 18.1.0
