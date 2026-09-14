@@ -12,6 +12,9 @@
     "preview:frontend": "pnpm --filter frontend preview",
     "start": "pnpm --filter backend --filter frontend --parallel start:prod",
     "test:backend": "pnpm --filter backend test",
-    "test:backend:e2e": "pnpm --filter backend test:e2e"
+    "test:backend:e2e": "pnpm --filter backend test:e2e",
+    "lint": "pnpm --filter backend lint",
+    "lint:check": "pnpm --filter backend lint:check",
+    "typecheck": "pnpm --filter backend typecheck && pnpm --filter frontend typecheck"
   }
 }
