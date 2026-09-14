@@ -22,13 +22,15 @@ jobs:
     environment: production
     steps:
       - name: Validate rollback input
+        env:
+          COMMIT_REF: ${{ inputs.commit }}
         run: |
-          if [ -z "${{ inputs.commit }}" ]; then
+          if [ -z "$COMMIT_REF" ]; then
             echo "ERROR: Target commit hash or tag is required"
             exit 1
           fi
-          if [[ ! "${{ inputs.commit }}" =~ ^[a-zA-Z0-9._-]+$ ]]; then
-            echo "ERROR: Invalid commit reference format: '${{ inputs.commit }}'"
+          if [[ ! "$COMMIT_REF" =~ ^[a-zA-Z0-9._-]+$ ]]; then
+            echo "ERROR: Invalid commit reference format: '$COMMIT_REF'"
             exit 1
           fi
 
@@ -51,11 +53,16 @@ jobs:
           ssh-keyscan -H "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null
 
       - name: Execute remote rollback
+        env:
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER || 'deploy' }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          APP_PATH: ${{ vars.APP_PATH || '/opt/gestor-suscripciones' }}
+          COMMIT_REF: ${{ inputs.commit }}
         run: |
           ssh -i ~/.ssh/deploy_key \
             -o StrictHostKeyChecking=yes \
-            "${{ secrets.DEPLOY_USER || 'deploy' }}@${{ secrets.DEPLOY_HOST }}" \
-            "cd ${{ vars.APP_PATH || '/opt/gestor-suscripciones' }} && bash scripts/rollback.sh ${{ inputs.commit }}"
+            "$DEPLOY_USER@$DEPLOY_HOST" \
+            "cd $APP_PATH && bash scripts/rollback.sh $COMMIT_REF"
 
       - name: Post-rollback health check
         run: |
