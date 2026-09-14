@@ -16,5 +16,13 @@
     "lint": "pnpm --filter backend lint",
     "lint:check": "pnpm --filter backend lint:check",
     "typecheck": "pnpm --filter backend typecheck && pnpm --filter frontend typecheck"
+  },
+  "pnpm": {
+    "overrides": {
+      "raw-body@3": "4.0.0",
+      "webpack@<=5.107.2": "5.107.2",
+      "yargs@17": "18.1.0"
+    }
   }
 }
+
