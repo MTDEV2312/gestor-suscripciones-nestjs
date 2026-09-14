@@ -1,0 +1,66 @@
+# Ejemplo de referencia: rollback.yml
+# Este archivo es un EJEMPLO DOCUMENTAL, no un workflow funcional.
+# Copiar a .github/workflows/rollback.yml durante la implementación.
+
+name: Rollback
+
+on:
+  workflow_dispatch:
+    inputs:
+      commit:
+        description: 'Commit hash or tag to rollback to'
+        required: true
+        type: string
+      skip_migrations:
+        description: 'Skip database rollback (use if new migrations are backward-compatible)'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  rollback:
+    runs-on: self-hosted
+    environment: production
+    steps:
+      - name: Validate input
+        run: |
+          if [ -z "${{ inputs.commit }}" ]; then
+            echo "ERROR: Commit hash is required"
+            exit 1
+          fi
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Execute rollback
+        run: |
+          ssh -i ~/.ssh/deploy_key \
+            -o StrictHostKeyChecking=yes \
+            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
+            "cd ${{ vars.APP_PATH }} && bash scripts/rollback.sh ${{ inputs.commit }}"
+
+      - name: Health check
+        run: |
+          sleep 10
+          HEALTH=$(ssh -i ~/.ssh/deploy_key \
+            -o StrictHostKeyChecking=yes \
+            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
+            "curl -sf http://localhost:3000/health" || echo "FAILED")
+
+          if echo "$HEALTH" | grep -q '"status":"OK"'; then
+            echo "Rollback successful — health check passed"
+          else
+            echo "CRITICAL: Rollback health check failed: $HEALTH"
+            exit 1
+          fi
+
+      - name: Cleanup SSH key
+        if: always()
+        run: rm -f ~/.ssh/deploy_key

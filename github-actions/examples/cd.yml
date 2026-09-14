@@ -1,0 +1,77 @@
+# Ejemplo de referencia: cd.yml
+# Este archivo es un EJEMPLO DOCUMENTAL, no un workflow funcional.
+# Copiar a .github/workflows/cd.yml durante la implementación.
+
+name: CD
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cd-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    environment: production
+    steps:
+      - name: Validate environment
+        run: |
+          if [ -z "${{ secrets.DEPLOY_HOST }}" ]; then
+            echo "ERROR: DEPLOY_HOST secret not configured"
+            exit 1
+          fi
+          if [ -z "${{ secrets.DEPLOY_SSH_KEY }}" ]; then
+            echo "ERROR: DEPLOY_SSH_KEY secret not configured"
+            exit 1
+          fi
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Pre-deploy check
+        run: |
+          ssh -i ~/.ssh/deploy_key \
+            -o StrictHostKeyChecking=yes \
+            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
+            "echo 'SSH connection OK'"
+
+      - name: Deploy
+        run: |
+          ssh -i ~/.ssh/deploy_key \
+            -o StrictHostKeyChecking=yes \
+            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
+            "cd ${{ vars.APP_PATH }} && bash scripts/deploy.sh"
+
+      - name: Post-deploy health check
+        run: |
+          sleep 10
+          HEALTH=$(ssh -i ~/.ssh/deploy_key \
+            -o StrictHostKeyChecking=yes \
+            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
+            "curl -sf http://localhost:3000/health" || echo "FAILED")
+
+          if echo "$HEALTH" | grep -q '"status":"OK"'; then
+            echo "Health check passed"
+          else
+            echo "Health check failed: $HEALTH"
+            exit 1
+          fi
+
+      - name: Cleanup SSH key
+        if: always()
+        run: rm -f ~/.ssh/deploy_key
+
+      - name: Notify failure
+        if: failure()
+        run: |
+          echo "::error::Deploy failed. Run scripts/rollback.sh manually or trigger the rollback workflow."
