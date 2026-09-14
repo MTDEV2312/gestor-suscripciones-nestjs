@@ -58,6 +58,8 @@ log "Initiating rollback to target reference: $COMMIT"
 
 # ─── 3. Checkout Target Ref ───────────────────────────────────────────────────
 log "Checking out '$COMMIT'..."
+git reset --hard HEAD || true
+git clean -fd -e apps/backend/.env || true
 git checkout "$COMMIT" || die "git checkout '$COMMIT' failed"
 NEW_COMMIT=$(git rev-parse --short HEAD)
 log "Successfully checked out commit: $NEW_COMMIT"

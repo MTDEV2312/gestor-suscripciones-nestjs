@@ -58,8 +58,10 @@ log "=== 2. Updating Source Code ==="
 PREV_COMMIT=$(git rev-parse --short HEAD 2>/dev/null || echo "initial")
 log "Previous commit: $PREV_COMMIT"
 
-git fetch origin main 2>> "$DEPLOY_LOG" || true
-git pull origin main 2>> "$DEPLOY_LOG" || die "Failed to pull latest changes from origin/main"
+git fetch origin main 2>> "$DEPLOY_LOG" || die "Failed to fetch from origin/main"
+git checkout -B main origin/main 2>> "$DEPLOY_LOG" || die "Failed to checkout main"
+git reset --hard origin/main 2>> "$DEPLOY_LOG" || die "Failed to reset to origin/main"
+git clean -fd -e apps/backend/.env 2>> "$DEPLOY_LOG" || true
 
 NEW_COMMIT=$(git rev-parse --short HEAD)
 log "Target commit: $NEW_COMMIT"
