@@ -75,8 +75,15 @@ pnpm build || die "Build failed during rollback"
 pnpm install --prod || true
 
 # ─── 5. Reload Services ───────────────────────────────────────────────────────
-log "Reloading PM2 service '$BACKEND_NAME'..."
-(sudo pm2 reload "$BACKEND_NAME" --update-env || sudo pm2 restart "$BACKEND_NAME" --update-env) || die "PM2 reload failed"
+TARGET_PROCESS="$BACKEND_NAME"
+if ! sudo pm2 describe "$TARGET_PROCESS" >/dev/null 2>&1; then
+    if sudo pm2 describe "gestor-backend" >/dev/null 2>&1; then
+        TARGET_PROCESS="gestor-backend"
+    fi
+fi
+
+log "Reloading PM2 service '$TARGET_PROCESS'..."
+(sudo pm2 reload "$TARGET_PROCESS" --update-env || sudo pm2 restart "$TARGET_PROCESS" --update-env) || die "PM2 reload failed"
 log "PM2 reload: OK"
 
 log "Reloading Nginx web server..."

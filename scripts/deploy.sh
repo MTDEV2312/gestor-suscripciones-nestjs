@@ -102,6 +102,9 @@ restore_backup_on_failure() {
 # ─── 4. Install Dependencies & Build ──────────────────────────────────────────
 log "=== 4. Installing Dependencies and Building Monorepo ==="
 
+# Set CI=true to prevent interactive prompts and module purge warnings
+export CI=true
+
 # Install dependencies (including devDependencies required for compilation)
 pnpm install --frozen-lockfile 2>> "$DEPLOY_LOG" || pnpm install 2>> "$DEPLOY_LOG" || die "pnpm install failed"
 log "Dependencies installed successfully."
@@ -127,10 +130,18 @@ fi
 # ─── 6. Zero-Downtime Service Reload ──────────────────────────────────────────
 log "=== 6. Reloading Services ==="
 
-# PM2 zero-downtime cluster reload
-log "Reloading PM2 service '$BACKEND_NAME'..."
-sudo pm2 reload "$BACKEND_NAME" --update-env 2>> "$DEPLOY_LOG" || die "PM2 reload failed"
-log "PM2 reload: OK"
+# Resolve PM2 service name (handle gestor-backend vs gestor-suscripciones-backend)
+TARGET_PROCESS="$BACKEND_NAME"
+if ! sudo pm2 describe "$TARGET_PROCESS" >/dev/null 2>&1; then
+    if sudo pm2 describe "gestor-backend" >/dev/null 2>&1; then
+        TARGET_PROCESS="gestor-backend"
+    fi
+fi
+
+# PM2 zero-downtime cluster reload with restart fallback
+log "Reloading PM2 service '$TARGET_PROCESS'..."
+(sudo pm2 reload "$TARGET_PROCESS" --update-env 2>> "$DEPLOY_LOG" || sudo pm2 restart "$TARGET_PROCESS" --update-env 2>> "$DEPLOY_LOG") || die "PM2 reload/restart failed"
+log "PM2 reload/restart: OK"
 
 # Nginx configuration / worker reload
 log "Reloading Nginx web server..."
