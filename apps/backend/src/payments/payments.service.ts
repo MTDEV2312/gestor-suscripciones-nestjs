@@ -800,17 +800,21 @@ export class PaymentsService {
     }
 
     // 1: Catalog
-    objects[catalogObjIndex] = `<< /Type /Catalog /Pages ${pagesObjIndex} 0 R >>`;
+    objects[catalogObjIndex] =
+      `<< /Type /Catalog /Pages ${pagesObjIndex} 0 R >>`;
 
     // 2: Pages
     const kidsStr = pageObjIndices.map((idx) => `${idx} 0 R`).join(' ');
-    objects[pagesObjIndex] = `<< /Type /Pages /Kids [${kidsStr}] /Count ${totalPages} >>`;
+    objects[pagesObjIndex] =
+      `<< /Type /Pages /Kids [${kidsStr}] /Count ${totalPages} >>`;
 
     // 3: Font Helvetica with standard WinAnsiEncoding
-    objects[font1ObjIndex] = `<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>`;
+    objects[font1ObjIndex] =
+      `<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>`;
 
     // 4: Font Helvetica-Bold with standard WinAnsiEncoding
-    objects[font2ObjIndex] = `<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>`;
+    objects[font2ObjIndex] =
+      `<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>`;
 
     // Page and Content objects
     for (let i = 0; i < totalPages; i++) {
@@ -818,8 +822,10 @@ export class PaymentsService {
       const contentIdx = contentObjIndices[i];
       const contentStream = finalPageStreams[i].trim();
 
-      objects[pageIdx] = `<< /Type /Page /Parent ${pagesObjIndex} 0 R /MediaBox [0 0 ${pageWidth} ${pageHeight}] /Contents ${contentIdx} 0 R /Resources << /Font << /F1 ${font1ObjIndex} 0 R /F2 ${font2ObjIndex} 0 R >> /ProcSet [/PDF /Text /ImageB /ImageC /ImageI] >> >>`;
-      objects[contentIdx] = `<< /Length ${Buffer.byteLength(contentStream, 'latin1')} >>\nstream\n${contentStream}\nendstream`;
+      objects[pageIdx] =
+        `<< /Type /Page /Parent ${pagesObjIndex} 0 R /MediaBox [0 0 ${pageWidth} ${pageHeight}] /Contents ${contentIdx} 0 R /Resources << /Font << /F1 ${font1ObjIndex} 0 R /F2 ${font2ObjIndex} 0 R >> /ProcSet [/PDF /Text /ImageB /ImageC /ImageI] >> >>`;
+      objects[contentIdx] =
+        `<< /Length ${Buffer.byteLength(contentStream, 'latin1')} >>\nstream\n${contentStream}\nendstream`;
     }
 
     // Assemble PDF binary data with accurate byte offset calculation
@@ -845,4 +851,3 @@ export class PaymentsService {
     return Buffer.from(pdfData, 'latin1');
   }
 }
-

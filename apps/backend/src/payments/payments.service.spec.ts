@@ -23,7 +23,7 @@ describe('PaymentsService', () => {
     email: 'test@example.com',
   };
 
-  const mockReq = { user: mockUser };
+  const mockReq = { user: mockUser } as any;
 
   const mockPayment: SubscriptionPayment = {
     id: 'pay-1',

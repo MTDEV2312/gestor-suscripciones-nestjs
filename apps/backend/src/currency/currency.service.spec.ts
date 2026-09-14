@@ -208,8 +208,8 @@ describe('CurrencyService', () => {
 
       fallbackRepository.create.mockReturnValue(newEntity);
       fallbackRepository.save.mockResolvedValue({
-        id: 'new-id',
         ...newEntity,
+        id: 'new-id',
         updated_at: new Date(),
       });
 
