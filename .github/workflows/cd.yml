@@ -1,0 +1,74 @@
+name: CD Pipeline
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cd-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Production Deployment
+    runs-on: self-hosted
+    environment: production
+    steps:
+      - name: Validate environment secrets
+        run: |
+          if [ -z "${{ secrets.DEPLOY_HOST }}" ]; then
+            echo "ERROR: DEPLOY_HOST secret is not configured"
+            exit 1
+          fi
+          if [ -z "${{ secrets.DEPLOY_SSH_KEY }}" ]; then
+            echo "ERROR: DEPLOY_SSH_KEY secret is not configured"
+            exit 1
+          fi
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Pre-deploy SSH connectivity check
+        run: |
+          ssh -i ~/.ssh/deploy_key \
+            -o StrictHostKeyChecking=yes \
+            "${{ secrets.DEPLOY_USER || 'deploy' }}@${{ secrets.DEPLOY_HOST }}" \
+            "echo 'SSH connection verified'"
+
+      - name: Execute remote deployment
+        run: |
+          ssh -i ~/.ssh/deploy_key \
+            -o StrictHostKeyChecking=yes \
+            "${{ secrets.DEPLOY_USER || 'deploy' }}@${{ secrets.DEPLOY_HOST }}" \
+            "cd ${{ vars.APP_PATH || '/opt/gestor-suscripciones' }} && bash scripts/deploy.sh"
+
+      - name: Remote post-deployment health check
+        run: |
+          sleep 5
+          HEALTH=$(ssh -i ~/.ssh/deploy_key \
+            -o StrictHostKeyChecking=yes \
+            "${{ secrets.DEPLOY_USER || 'deploy' }}@${{ secrets.DEPLOY_HOST }}" \
+            "curl -sf http://localhost:3000/health" || echo "FAILED")
+
+          if echo "$HEALTH" | grep -q '"status":"OK"'; then
+            echo "Remote deployment health check passed: $HEALTH"
+          else
+            echo "Remote deployment health check failed: $HEALTH"
+            exit 1
+          fi
+
+      - name: Cleanup SSH private key
+        if: always()
+        run: rm -f ~/.ssh/deploy_key
+
+      - name: Notify deployment failure
+        if: failure()
+        run: |
+          echo "::error::Production deployment failed. Trigger the rollback workflow or execute scripts/rollback.sh on LXC 112."

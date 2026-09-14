@@ -1,0 +1,77 @@
+name: Rollback
+
+on:
+  workflow_dispatch:
+    inputs:
+      commit:
+        description: 'Target commit hash, short SHA, or tag to rollback to'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cd-production
+  cancel-in-progress: false
+
+jobs:
+  rollback:
+    name: Production Rollback
+    runs-on: self-hosted
+    environment: production
+    steps:
+      - name: Validate rollback input
+        run: |
+          if [ -z "${{ inputs.commit }}" ]; then
+            echo "ERROR: Target commit hash or tag is required"
+            exit 1
+          fi
+          if [[ ! "${{ inputs.commit }}" =~ ^[a-zA-Z0-9._-]+$ ]]; then
+            echo "ERROR: Invalid commit reference format: '${{ inputs.commit }}'"
+            exit 1
+          fi
+
+      - name: Validate environment secrets
+        run: |
+          if [ -z "${{ secrets.DEPLOY_HOST }}" ]; then
+            echo "ERROR: DEPLOY_HOST secret is not configured"
+            exit 1
+          fi
+          if [ -z "${{ secrets.DEPLOY_SSH_KEY }}" ]; then
+            echo "ERROR: DEPLOY_SSH_KEY secret is not configured"
+            exit 1
+          fi
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Execute remote rollback
+        run: |
+          ssh -i ~/.ssh/deploy_key \
+            -o StrictHostKeyChecking=yes \
+            "${{ secrets.DEPLOY_USER || 'deploy' }}@${{ secrets.DEPLOY_HOST }}" \
+            "cd ${{ vars.APP_PATH || '/opt/gestor-suscripciones' }} && bash scripts/rollback.sh ${{ inputs.commit }}"
+
+      - name: Post-rollback health check
+        run: |
+          sleep 5
+          HEALTH=$(ssh -i ~/.ssh/deploy_key \
+            -o StrictHostKeyChecking=yes \
+            "${{ secrets.DEPLOY_USER || 'deploy' }}@${{ secrets.DEPLOY_HOST }}" \
+            "curl -sf http://localhost:3000/health" || echo "FAILED")
+
+          if echo "$HEALTH" | grep -q '"status":"OK"'; then
+            echo "Rollback successful — health check passed: $HEALTH"
+          else
+            echo "CRITICAL: Rollback health check failed: $HEALTH"
+            exit 1
+          fi
+
+      - name: Cleanup SSH private key
+        if: always()
+        run: rm -f ~/.ssh/deploy_key
