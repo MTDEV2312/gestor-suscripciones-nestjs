@@ -19,7 +19,7 @@
   },
   "pnpm": {
     "overrides": {
-      "raw-body@3": "3.0.2",
+      "body-parser>raw-body": "4.0.0",
       "webpack@<=5.107.2": "5.107.2",
       "yargs@17": "18.1.0"
     }
